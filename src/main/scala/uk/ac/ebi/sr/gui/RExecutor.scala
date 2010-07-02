@@ -2,6 +2,7 @@ package uk.ac.ebi.sr
 package gui
 
 import interpreter._
+import model.Environment
 
 /**
  *
@@ -12,11 +13,10 @@ import interpreter._
 class RExecutor(var env: Environment) {
 
   def parseAndFormat(input: String): (String, String) = {
-    val parser = if (input.contains(";")) RParser.program else RParser.expression
     val result = new StringBuilder()
     val tree   = new StringBuilder()
 
-    RParser.parseUnwrap(input, parser) match {
+    RParser.parseUnwrap(input, RParser.rProgram) match {
       case r: RParser.Failure => {
         result.append(r.toString)
         result.append("\n")
@@ -34,6 +34,7 @@ class RExecutor(var env: Environment) {
           case e: java.lang.RuntimeException => {
             result.append("error: ")
             result.append(e.getMessage())
+            e.printStackTrace
           }
         } finally {
           result.append("\n")

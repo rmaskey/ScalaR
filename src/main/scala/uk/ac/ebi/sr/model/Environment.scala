@@ -1,8 +1,8 @@
 package uk.ac.ebi.sr
-package interpreter
+package model
 
 import collection.mutable.Map
-import model.{Type, RObject}
+import interpreter.{Evaluator, Expression}
 
 /**
  *
@@ -10,24 +10,23 @@ import model.{Type, RObject}
  * @author Taalai Djumabaev
  */
 
-class Environment(identifiers: Map[String, Any], parent: Option[Environment]) extends RObject {
+class Environment(val ids: Map[String, Any], parent: Option[Environment]) extends RObject {
   lazy val child = new Environment(Map[String, Any](), Some(this))
 
-  val ids = identifiers
-  val objectType = Type.ENVIRONMENT
+  val `type` = Type.ENVIRONMENT
 
   def += (id: String, value: Any) = {
-    ids += (id -> value)
-    this
-  }
-  def ++= (vars: List[(String, Any)]) = {
-    ids ++= vars
+    val v = value match {
+      case e: Expression => Evaluator.eval(e, this)
+      case any => any
+    }
+    ids += (id -> v)
     this
   }
 
   def resolve(id: String): Option[Any] = {
     if (ids contains id) {
-      Some(ids(id))
+      Some((ids(id), this))
     } else {
       parent match {
         case Some(c) => c resolve id

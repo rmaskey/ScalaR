@@ -33,7 +33,8 @@ trait RTokens extends StdTokens {
   }
 
   case object NewLineDelimiter extends Token {
-    def chars = "\r\n"
+    def chars = "\n"
+    //def chars = "\r\n"
     override def toString = chars
   }
 }
@@ -43,7 +44,8 @@ class RLexer extends Lexical with RTokens with RegexParsers {
   import scala.util.parsing.input.CharArrayReader.EofCh
 
   def token: Parser[Token] =
-    ( '\015' ~ '\012'                    ^^^ NewLineDelimiter
+    ( '\012'                    ^^^ NewLineDelimiter
+    //( '\015' ~ '\012'                    ^^^ NewLineDelimiter
     | hexNum                             ^^ { case hexNum(h) => NumericLit(Integer.parseInt(h, 16) toString) }
     | decimal ^^ { case decimal(null, _, _, _, d2, m2, e2, i2) =>  createNumberToken(d2, m2, e2, i2)
                    case decimal(d1, m1, e1, i1, _, _, _, _) => createNumberToken(d1, m1, e1, i1) }
@@ -54,13 +56,14 @@ class RLexer extends Lexical with RTokens with RegexParsers {
     | '\"' ~> failure("unclosed string literal")
     | '%' ~> (chrExcept(' ', '\n', EofCh, '%')*) <~ '%' ^^ { case chars => UserDefinedOperation(chars mkString "")}
     | delim
+            | EofCh ^^^ EOF
     | failure("illegal character")
     )
 
   override def letter = elem("letter or dot", ch => ch.isLetter || ch == '.')
   //tab is not supported in R? at lest r-gui doesn't admit it
   override def whitespaceChar = elem("space char", ch => (ch == ' ' || ch == '\t') && ch != EofCh)
-  override def whitespace: Parser[Any] = rep(whitespaceChar | '#' ~ rep(chrExcept(EofCh, '\n', '\r'))) //^^ { case c => println("white: " + c.size + ".." + c); c }
+  override def whitespace: Parser[Any] = rep(whitespaceChar | '#' ~ rep(chrExcept(EofCh, '\n', '\r'))) //^^ {case s => println(s);s }
 
   //todo reduce duplication
   val decimal = """(\d+)(\.\d*)?([eE][+-]?\d+)?(i)?|(\d*)(\.\d+)([eE][+-]?\d+)?(i)?""" r

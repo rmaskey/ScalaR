@@ -6,7 +6,7 @@ import event.ButtonClicked
 import GridBagPanel.Anchor
 import javax.swing.UIManager
 import java.awt.{Font, Insets, Point}
-import uk.ac.ebi.sr.interpreter.{Environment}
+import uk.ac.ebi.sr.model.Environment
 
 /**
  * RGUI works
@@ -15,7 +15,7 @@ import uk.ac.ebi.sr.interpreter.{Environment}
  * @author Taalai Djumabaev
  */
 
-object RGui extends SimpleGUIApplication {
+object RGui extends SimpleSwingApplication {
   try {
     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
   } catch { case e: Exception => }
@@ -26,7 +26,7 @@ object RGui extends SimpleGUIApplication {
   val resultAreaColumnNumber = inputFieldColumnNumber / 2
 
   val resultAreaRowNumber = 15
-  val inputAreaRowNumber = 3
+  val inputAreaRowNumber = 5
   val frameLocation = new Point(100, 200)
 
   var rExecutor = new RExecutor(new Environment(collection.mutable.Map(), None))

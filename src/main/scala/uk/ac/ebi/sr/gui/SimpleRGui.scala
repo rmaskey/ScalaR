@@ -4,9 +4,9 @@ package gui
 import swing.event.ButtonClicked
 import swing._
 import GridBagPanel.Anchor
-import interpreter.Environment
 import javax.swing.UIManager
 import java.awt.{Insets, Point, Font}
+import uk.ac.ebi.sr.model.Environment
 
 /**
  *
@@ -14,7 +14,7 @@ import java.awt.{Insets, Point, Font}
  * @author Taalai Djumabaev
  */
 
-object SimpleRGui extends SimpleGUIApplication {
+object SimpleRGui extends SimpleSwingApplication {
   try {
     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
   } catch { case e: Exception => }

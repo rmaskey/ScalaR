@@ -4,19 +4,19 @@ package interpreter
 import util.parsing.combinator.syntactical.StdTokenParsers
 import util.parsing.input.PagedSeqReader
 import collection.immutable.PagedSeq
+import model.RVal._
 
 /**
  *
  * Date: 21.03.2010
  * @author Taalai Djumabaev
  */
-
 object RParser extends StdTokenParsers {
   type Tokens = RTokens
   val lexical = new RLexer
 
-  import lexical.{DecimalNum, UserDefinedOperation, LitIdentifier,
-    ComplexNum, NumericLit, Keyword, NewLineDelimiter}
+  import lexical.{DecimalNum, UserDefinedOperation, LitIdentifier, Identifier,
+    ComplexNum, NumericLit, Keyword, NewLineDelimiter, EOF}
 
   lexical.delimiters ++= List("{", "}", "(", ")", "[", "[[", "]", "]]", ",", "\t", ";", "\n", "\r",
       "::", "$", "@", "^", "-", "+", ":", ":::", "*", "/", ">", ">=", "<", "%",
@@ -28,10 +28,11 @@ object RParser extends StdTokenParsers {
 
   def rProgram: RLangParser[Expression] = rep(newLineDelimiters) ~~> program
 
-  def program: RLangParser[Expression] = (tightRepsep(expression, delimiters) ^^ Block) <~ (delimiters?)
+  def program: RLangParser[Expression] = (tightRepsep(expression | eof, delimiters) ^^ Block) <~ (delimiters?)
   def delimiters = ";" | newLineDelimiters
   def newLineDelimiters = elem("new line delimiter", _ == NewLineDelimiter) ^^ (_.chars)
 
+  def eof = elem("End of file reached", _ == EOF) ^^^ EOfF
   def expression: RLangParser[Expression] =
     ( sStructure
     | funDecl
@@ -111,7 +112,6 @@ object RParser extends StdTokenParsers {
   def mul     = usrDef ~~ ((userDefinedOp ~ usrDef)*) ^^
       { case e ~ l => l.foldLeft(e) { case (e1, f ~ e2) => UserDefOp(f, CallArg(e1), CallArg(e2)) } }
 
-  //having multiple ":" operators yields to a warning in R - not an error
   def usrDef  = range * (":" ^^^ Sequence)
 
   // operations are unary and ^ operation has right to left precedence
@@ -151,32 +151,34 @@ object RParser extends StdTokenParsers {
         { case i ~ Some(":::" ~ n) => TripleColon(i, n)
           case i ~ Some("::" ~ n) => DoubleColon(i, n)
           case i ~ _ => Var(i) }
-    | stringLit ~~ opt((":::" | "::") ~ name) ^^
+    | stringLiteral ~~ opt((":::" | "::") ~ name) ^^
         { case i ~ Some(":::" ~ n) => TripleColon(i, n)
           case i ~ Some("::" ~ n) => DoubleColon(i, n)
           case i ~ _ => Lit(i) }
     | "(" ~> expression <~ ")"
     | "{" ~> program <~ "}"
-    | numericLit ^^ Num.compose(_.toInt)
-    | decimalNumber ^^ Num.compose(_.toDouble)
-    | complexNum ^^ Complex
+    | integerNumber ^^ { i => Num(i) }
+    | decimalNumber ^^ { i => Num(i) }
+    | complexNum ^^ { i => Num(i) }
     | funDecl
     )
 
-  def name: RLangParser[String] = ident | stringLit
-  def boolean = "TRUE" ^^^ True() | "FALSE" ^^^ False()
+  def name: RLangParser[String] = ident | stringLiteral
+  def boolean = "TRUE" ^^^ True | "FALSE" ^^^ False
 
-  def complexNum = elem("complex number", _.isInstanceOf[ComplexNum]) ^^
-      ((_:Elem).asInstanceOf[ComplexNum].format match {
-        case i: NumericLit => i.chars.toInt
-        case d: DecimalNum => d.chars.toDouble
-        case _ => error("undefined format of number")
-      })
-
-  def decimalNumber: RLangParser[String] = elem("decimal number", _.isInstanceOf[DecimalNum]) ^^ (_.chars)
+  def complexNum[Complex] = elem("complex number", _.isInstanceOf[ComplexNum]) ^^
+    ((_:Elem).asInstanceOf[ComplexNum].format match {
+      case i: NumericLit => i.chars.toInt
+      case d: DecimalNum => d.chars.toDouble
+      case _ => error("undefined format of number")
+    })
+  def integerNumber: RLangParser[RInt] = elem("integer", _.isInstanceOf[NumericLit]) ^^
+      { case s => RInt(s.chars.toInt) }
+  def decimalNumber: RLangParser[RDouble] = elem("decimal number", _.isInstanceOf[DecimalNum]) ^^
+      { case s => RDouble(s.chars.toDouble) }
   def userDefinedOp: RLangParser[String] = elem("string literal", _.isInstanceOf[UserDefinedOperation]) ^^ (_.toString)
   //needed because literals are identifiers in R except some special cases
-  override def stringLit: RLangParser[String] = elem("literal identifier", _.isInstanceOf[LitIdentifier]) ^^ (_.chars)
+  def stringLiteral: RLangParser[String] = elem("literal ident", _.isInstanceOf[LitIdentifier]) ^^ (_.chars)
 
   class ArgumentGroup {
     import collection.mutable.Set
@@ -184,7 +186,7 @@ object RParser extends StdTokenParsers {
 
     def check(id: String) = {
       if (decl == null) decl = Set[String]()
-      if (decl.contains(id)) error("duplicate identifier in function declaration")
+      if (decl.contains(id)) error("duplicate ident in function declaration")
       decl += id
     }
   }
@@ -231,8 +233,7 @@ object RParser extends StdTokenParsers {
     new RLangParser[T] { q => def apply(in: Input) = p(in) }
 
   def main(args: Array[String]) {
-    //val input = new PagedSeqReader(PagedSeq.fromFile("r/src/temp.txt"))
-    val input = new PagedSeqReader(PagedSeq.fromFile("r/src/r parsercheck.txt"))
+    val input = new PagedSeqReader(PagedSeq.fromFile("r/src/temp.txt"))
     val tokens = new lexical.Scanner(input)
     val result = phrase(rProgram)(tokens)
     result match {
@@ -245,12 +246,9 @@ object RParser extends StdTokenParsers {
     }
   }
 
-  def parseUnwrap(input: String): Any = {
-    parseUnwrap(input, program)
-  }
-
-  def parseUnwrap(input: String, f: => Parser[Expression]): Any = {
-    parse(input, f) match {
+  def parseUnwrap(input: String, f: => Parser[Expression] = program): Any = {
+    val tokens = new lexical.Scanner(input)
+    phrase(f)(tokens) match {
       case Success(tree, _) => tree
       case e: NoSuccess => {
         Console.err.println(e)
@@ -258,12 +256,6 @@ object RParser extends StdTokenParsers {
       }
     }
   }
-
-  def parse(input: String, f: => Parser[Expression]) = {
-    val tokens = new lexical.Scanner(input)
-    phrase(f)(tokens)
-  }
-
 }
 
 
