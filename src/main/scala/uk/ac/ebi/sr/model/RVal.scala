@@ -10,21 +10,22 @@ import reflect.Manifest
  */
 
 trait Sequential[S] {
-  val s: Array[S]
+  def s: Array[S]
 
-  def replicate(newLen: Int): Array[S] = s
+  def replicate(len: Int): Array[S] = s
+
+  def resize(i: Int): Sequential[S]
+  val NA: S
 }
 
 trait RVal[T] extends RObject with Sequential[T] {
 
-  override lazy val length = s.length
-
   def isNa(t: T): Boolean = t == NA
-  val NA: T
 
-  val isEmpty = s == null || s.length == 0
+  def isEmpty = s == null || s.length == 0
 
-  override def toString = s.toList.toString
+  override lazy val length = if (s == null) 0 else s.length
+  override def toString = if (isEmpty) "NULL" else s.toList.toString
 }
 
 
@@ -39,11 +40,19 @@ object RVal {
   class RBool(val s: Array[Bool]) extends RVal[Bool] {
     lazy val `type` = RBool.`type`
     lazy val NA = RBool.NA
+
+    def resize(i: Int): RBool = {
+      if (i == length) return this
+      val newSeq = Array.tabulate(i)(_ => NA)
+      s.copyToArray(newSeq, 0, math.min(length, i))
+      //all irrelevant attributes are not copied
+      new RBool(newSeq)
+    }
   }
   object RBool {
     def apply(xs: Bool*) = new RBool(xs.toArray)
     def apply(s: Array[Bool]) = if (s == null) BoolNull else new RBool(s)
-    //not needed.
+    //not needed. since Int is used
     def apply() = BoolNull
     object BoolNull extends RBool(null) {
       override def toString = "NULL"
@@ -55,6 +64,14 @@ object RVal {
   class RInt(val s: Array[Int]) extends RVal[Int] {
     lazy val `type` = RInt.`type`
     lazy val NA =RInt.NA
+
+    def resize(i: Int): RInt = {
+      if (i == length) return this
+      val newSeq = Array.tabulate(i)(_ => NA)
+      s.copyToArray(newSeq, 0, math.min(length, i))
+      //all irrelevant attributes are not copied
+      new RInt(newSeq)
+    }
   }
   object RInt {
     def apply(xs: Int*) = new RInt(xs.toArray)
@@ -70,6 +87,14 @@ object RVal {
   class RDouble(val s: Array[Double]) extends RVal[Double] {
     lazy val `type` = RDouble.`type`
     lazy val NA = RDouble.NA
+
+    def resize(i: Int): RDouble = {
+      if (i == length) return this
+      val newSeq = Array.tabulate(i)(_ => NA)
+      s.copyToArray(newSeq, 0, math.min(length, i))
+      //all irrelevant attributes are not copied
+      new RDouble(newSeq)
+    }
   }
   object RDouble {
     def apply(xs: Double*) = new RDouble(xs.toArray)
@@ -85,6 +110,14 @@ object RVal {
   class RComplex(val s: Array[Complex]) extends RVal[Complex] {
     lazy val `type` = RComplex.`type`
     lazy val NA = RComplex.NA
+
+    def resize(i: Int): RComplex = {
+      if (i == length) return this
+      val newSeq = Array.tabulate(i)(_ => NA)
+      s.copyToArray(newSeq, 0, math.min(length, i))
+      //all irrelevant attributes are not copied
+      new RComplex(newSeq)
+    }
   }
   object RComplex {
     def apply(xs: Complex*) = new RComplex(xs.toArray)
@@ -94,12 +127,20 @@ object RVal {
       override def toString = "NULL"
     }
     val `type` = Type.COMPLEX
-    val NA = null
+    val NA = null.asInstanceOf[Complex]
   }
 
   class RChar(val s: Array[String]) extends RVal[String] {
     lazy val `type` = RChar.`type`
     lazy val NA =RChar.NA
+
+    def resize(i: Int): RChar = {
+      if (i == length) return this
+      val newSeq = Array.tabulate(i)(_ => NA)
+      s.copyToArray(newSeq, 0, math.min(length, i))
+      //all irrelevant attributes are not copied
+      new RChar(newSeq)
+    }
   }
   object RChar {
     def apply(xs: String*) = new RChar(xs.toArray)
@@ -109,7 +150,7 @@ object RVal {
       override def toString = "NULL"
     }
     val `type` = Type.CHARACTER // or char?
-    val NA = null
+    val NA = null.asInstanceOf[String]
   }
 }
 
@@ -225,6 +266,7 @@ object Operations {
 
 
   def main(args: Array[String]) {
+    println(sum(RInt(Array.tabulate(1000)(_.toInt)), RDouble(Array.tabulate(10000)(_.toDouble))))
     println(sum(RInt(1,2,3,4, 6, 7,2), RDouble(1.4,2.3, 5)))
     println(sum(RInt(1,2,3), RDouble(1.4,2.3, 5, 4, 3,56 ,6)))
     println(sum(RBool(1,2,3,4, 6, 7,2), RComplex(4.4,2.3, 5)))

@@ -21,5 +21,8 @@ abstract class RObject {
     case None => NULL
   }
 
-  def addAttr(name: String, value: Any) = attributes += name -> value
+  def addAttr(name: String, value: Any) = {
+    attributes += name -> value
+    value
+  }
 }

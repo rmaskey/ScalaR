@@ -15,6 +15,11 @@ class Environment(val ids: Map[String, Any], parent: Option[Environment]) extend
 
   val `type` = Type.ENVIRONMENT
 
+  def ++= (l: List[(String, Any)]) = {
+    for ((k, v) <- l) this += (k, v)
+    this
+  }
+
   def += (id: String, value: Any) = {
     val v = value match {
       case e: Expression => Evaluator.eval(e, this)
@@ -24,12 +29,12 @@ class Environment(val ids: Map[String, Any], parent: Option[Environment]) extend
     this
   }
 
-  def resolve(id: String): Option[Any] = {
+  def resolve(id: String, includeEnv: Boolean = false): Option[Any] = {
     if (ids contains id) {
-      Some((ids(id), this))
+      if (includeEnv) Some((ids(id), this)) else ids get id
     } else {
       parent match {
-        case Some(c) => c resolve id
+        case Some(c) => c.resolve(id, includeEnv)
         case None => None
       }
     }

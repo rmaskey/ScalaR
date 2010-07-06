@@ -3,7 +3,7 @@ package interpreter
 
 import model.RVal._
 import model.Operations._
-import model.{Environment, Println, Closure, RFunction}
+import model.{Environment, Println, Builtin, RFunction, Closure, Assignable, Attributes, Attr, Length}
 
 /**
  *
@@ -22,7 +22,12 @@ object Interpreter {
 
 class Interpreter(mainEnv: Environment) {
   def interpret(tree: Expression): (Any, Environment) = {
-    val evaluator = new Evaluator(mainEnv += ("println", Println))
+    val evaluator = new Evaluator(mainEnv ++=
+            List(
+              "println" -> Println,
+              "attr" -> Attr,
+              "attributes" -> Attributes,
+              "length" -> Length))
     (evaluator.eval(tree), evaluator.env)
   }
 }
@@ -45,8 +50,9 @@ class Evaluator(environment: Environment) {
         }
         _else match {
           case Some(Else(es)) => eval(es)
-          case _ => None
-        } //todo to be RObject NULL
+          case _ =>
+        }
+        NULL
       }
       case e => error("Not a boolean value in If expression : " + e) // todo toLogical interface usage to be added
     }
@@ -67,16 +73,14 @@ class Evaluator(environment: Environment) {
         args map (_.asInstanceOf[FCallArg])
       } else error("not an argument for the function apply method")
       eval(func) match {
-        case c: Closure => c(callArgs, env)
-        case f: RFunction[Any] => f(callArgs, env)
+        case f: RFunction[FCallArg] => f(callArgs, env)
         case lit: RChar => env.resolve(lit.s(0)) match {
-          case Some((c: Closure, _)) => c(callArgs, env)
-          case Some((f: RFunction[Any], _)) => f(callArgs, env)
+          case Some(f: RFunction[FCallArg]) => f(callArgs, env)
           case _ => error("Attempting to apply non-function value")
         }
         case a => {
           //A STRANGE BUG IN GUI
-          if (a.isInstanceOf[Closure]) a.asInstanceOf[Closure](callArgs, env)
+          if (a.isInstanceOf[RFunction[FCallArg]]) a.asInstanceOf[RFunction[FCallArg]](callArgs, env)
           else error("Attempting to apply non-function value " + a)
         }
       }
@@ -85,8 +89,8 @@ class Evaluator(environment: Environment) {
     // case CallArg(exp) => eval(exp) since for now all functions behave like closures
 
     case Var(id) => env.resolve(id) match {
-      case Some((x: Expression, _)) => eval(x)
-      case Some((x, _)) => x
+      case Some(x: Expression) => eval(x)
+      case Some(x) => x
       case None => error("Undefined var " + id)
     }
 
@@ -95,6 +99,7 @@ class Evaluator(environment: Environment) {
 
     case True => true // todo maybe I should leave True object without evaluating
     case False => false
+    case NULL => NULL
 
     case Add(l, r) => eval(l) match {
       case lhs: RBool => eval(r) match {
@@ -181,10 +186,8 @@ class Evaluator(environment: Environment) {
       case _ => error("Unsupported operation for ':' ")
     }
 
-    case UserDefOp(n, l, r) => (env.resolve(n), l, r) match {
-      case (Some((c: Closure, _)), left: FCallArg, right: FCallArg) => c(List(left, right), env)
-      //since all functions behave like closures for now
-      case (Some((f: RFunction[Any], _)), left: FCallArg, right: FCallArg) => f(List(left, right), env)
+    case UserDefOp(n, l, r) => env.resolve(n) match {
+      case Some(f: RFunction[FCallArg]) => f(List(l, r), env)
       case _ => error("Undefined operation " + n)
     }
 
@@ -261,6 +264,14 @@ class Evaluator(environment: Environment) {
     l match {
       case Var(id) => env += (id, v); v
       case Lit(lit) => env += (lit, v); v
+      case FunCall(f, a) => eval(f) match {
+        case built: Assignable => {
+          val callArgs = if (a forall (_.isInstanceOf[FCallArg])) {
+            a map (_.asInstanceOf[FCallArg])
+          } else error("not an argument for the function apply method")
+          built `<-`(callArgs, env, v)       ///env should be changed for evaluating the arguments but asssignments should be done into global one..
+        }
+      }
       case _ => error("wrong left part of the assignment ")
     }
 
@@ -268,17 +279,25 @@ class Evaluator(environment: Environment) {
     r match {
       case Var(id) => env += (id, v); v
       case Lit(lit) => env += (lit, v); v
+      case FunCall(f, a) => eval(f) match {
+        case built: Assignable => {
+          val callArgs = if (a forall (_.isInstanceOf[FCallArg])) {
+            a map (_.asInstanceOf[FCallArg])
+          } else error("not an argument for the function apply method")
+          built `<-`(callArgs, env, v)       ///env should be changed for evaluating the arguments but asssignments should be done into global one..
+        }
+      }
       case _ => error("wrong right part of the assignment ")
     }
 
     case Assign2ToRight(l, r) => {
       val v = eval(l);
       r match {
-        case Var(id) => env.resolve(id) match {
+        case Var(id) => env.resolve(id, true) match {
           case Some((i, e: Environment)) => e += (id, v)
           case None => env += (id, v)
         }
-        case Lit(lit) => env.resolve(lit) match {
+        case Lit(lit) => env.resolve(lit, true) match {
           case Some((i, e: Environment)) => e += (lit, v)
           case None => env += (lit, v)
         }
@@ -291,17 +310,25 @@ class Evaluator(environment: Environment) {
     l match {
       case Var(id) => env += (id, v); v
       case Lit(lit) => env += (lit, v); v
+      case FunCall(f, a) => eval(f) match {
+        case built: Assignable => {
+          val callArgs = if (a forall (_.isInstanceOf[FCallArg])) {
+            a map (_.asInstanceOf[FCallArg])
+          } else error("not an argument for the function apply method")
+          built `<-`(callArgs, env, v)       ///env should be changed for evaluating the arguments but asssignments should be done into global one..
+        }
+      }
       case _ => error("wrong left part of the assignment ")
     }
 
     case Assign2ToLeft(l, r) => {
       val v = eval(r);
       l match {
-        case Var(id) => env.resolve(id) match {
+        case Var(id) => env.resolve(id, true) match {
           case Some((i, e: Environment)) => e += (id, v)
           case None => env += (id, v)
         }
-        case Lit(lit) => env.resolve(lit) match {
+        case Lit(lit) => env.resolve(lit, true) match {
           case Some((i, e: Environment)) => e += (lit, v)
           case None => env += (lit, v)
         }
