@@ -13,7 +13,7 @@ import uk.ac.ebi.sr.model.Environment
  * Date: 20.05.2010
  * @author Taalai Djumabaev
  */
-
+@deprecated
 object SimpleRGui extends SimpleSwingApplication {
   try {
     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());

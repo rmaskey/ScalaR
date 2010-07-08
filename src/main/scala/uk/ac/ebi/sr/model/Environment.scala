@@ -11,7 +11,7 @@ import interpreter.{Evaluator, Expression}
  */
 
 class Environment(val ids: Map[String, Any], parent: Option[Environment]) extends RObject {
-  lazy val child = new Environment(Map[String, Any](), Some(this))
+  //lazy val child = new Environment(Map[String, Any](), Some(this))
 
   val `type` = Type.ENVIRONMENT
 

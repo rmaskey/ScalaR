@@ -2,6 +2,7 @@ package uk.ac.ebi.sr.model
 
 import collection.mutable.ArrayBuffer
 import reflect.Manifest
+import uk.ac.ebi.sr.interpreter.NULL
 
 /**
  *
@@ -11,6 +12,7 @@ import reflect.Manifest
 
 trait Sequential[S] {
   def s: Array[S]
+  lazy val length = if (s == null) 0 else s.length
 
   def replicate(len: Int): Array[S] = s
 
@@ -23,8 +25,8 @@ trait RVal[T] extends RObject with Sequential[T] {
   def isNa(t: T): Boolean = t == NA
 
   def isEmpty = s == null || s.length == 0
+  def empty: RVal[T]
 
-  override lazy val length = if (s == null) 0 else s.length
   override def toString = if (isEmpty) "NULL" else s.toList.toString
 }
 
@@ -36,10 +38,26 @@ object RVal {
   }
 
   type Bool = Int
-  implicit def rbool2RInt(b: RBool) = new RInt(b.s)
+  implicit def rbool2RInt(b: RBool): RInt = if (b.isEmpty) RInt() else new RInt(b.s)
+  implicit def rInt2RBool(b: RInt): RBool = if (b.isEmpty) RBool() else new RBool(b.s)
+  implicit def rDouble2RBool(b: RDouble): RBool = if (b.isEmpty) RBool() else new RBool(convertArray(b.s, (e :Double) => e.toInt))
+  implicit def rComplex2RBool(b: RComplex): RBool = if (b.isEmpty) RBool() else new RBool(convertArray(b.s, (e: Complex) => if (e.isZero) 0 else 1))                                                                     //todo
+  implicit def rChar2RBool(b: RChar): RBool = if (b.isEmpty) RBool() else new RBool(convertArray(b.s, (e: String) => if (e == "TRUE" || e == "true") 1 else if (e == "FALSE" || e == "false") 0 else error("not possible")))
+
+  def convertArray[A, B](a: Array[A], f: A => B)(implicit m: Manifest[B]): Array[B] = {
+    //if (a == null) return null
+    //if (a.length == 0) return new Array[B](0)
+    val buf = new ArrayBuffer[B](a.length)
+
+    var i = 0
+    while (i < a.length) { buf += f(a(i)); i += 1 }
+    buf.toArray
+  }
+
   class RBool(val s: Array[Bool]) extends RVal[Bool] {
     lazy val `type` = RBool.`type`
     lazy val NA = RBool.NA
+    def empty = RBool()
 
     def resize(i: Int): RBool = {
       if (i == length) return this
@@ -64,6 +82,7 @@ object RVal {
   class RInt(val s: Array[Int]) extends RVal[Int] {
     lazy val `type` = RInt.`type`
     lazy val NA =RInt.NA
+    def empty = RInt()
 
     def resize(i: Int): RInt = {
       if (i == length) return this
@@ -87,6 +106,7 @@ object RVal {
   class RDouble(val s: Array[Double]) extends RVal[Double] {
     lazy val `type` = RDouble.`type`
     lazy val NA = RDouble.NA
+    def empty = RDouble()
 
     def resize(i: Int): RDouble = {
       if (i == length) return this
@@ -110,6 +130,7 @@ object RVal {
   class RComplex(val s: Array[Complex]) extends RVal[Complex] {
     lazy val `type` = RComplex.`type`
     lazy val NA = RComplex.NA
+    def empty = RComplex()
 
     def resize(i: Int): RComplex = {
       if (i == length) return this
@@ -133,7 +154,8 @@ object RVal {
   class RChar(val s: Array[String]) extends RVal[String] {
     lazy val `type` = RChar.`type`
     lazy val NA =RChar.NA
-
+    def empty = RChar()
+    
     def resize(i: Int): RChar = {
       if (i == length) return this
       val newSeq = Array.tabulate(i)(_ => NA)
@@ -153,126 +175,3 @@ object RVal {
     val NA = null.asInstanceOf[String]
   }
 }
-
-object Operations {
-  import Complex._
-  import RVal._
-  def boolean2Int(b: Boolean) = b match {
-    case true => 1
-    case false => 0
-  }
-
-  def modeIterate[A, B, C](l: RVal[A], r: RVal[B], f: (A, B) => C, NA: C)(implicit m: Manifest[C]): Array[C] = {
-    if (l.isEmpty || r.isEmpty) return null
-    val la = l.s
-    val ra = r.s
-    val count = if (la.length > ra.length) la.length else ra.length
-    val buf = new ArrayBuffer[C](count)
-
-    var i, j, k = 0;
-    while(k < count) {
-      buf += (if (la(i) == l.NA || ra(j) == r.NA) NA else f(la(i), ra(j)))
-      i = if (i + 1 < la.length) i + 1 else 0
-      j = if (j + 1 < ra.length) j + 1 else 0
-      k += 1
-    }
-    buf.toArray
-  }
-
-  def genSequence[B](l: RInt, r: RVal[B])(implicit f: B => Int): Array[Int] = {
-    if (l.isEmpty || r.isEmpty) return null
-    // warning for length > 1
-    val start = l.s(0)
-    val end = f(r.s(0))
-    val cond = if (start < end) (i: Int) => i <= end else (i: Int) => i >= end
-    val buf = new ArrayBuffer[Int]
-    var i = start
-    while(cond(i)) {
-      buf += i
-      i += (if (start < end) 1 else -1)
-    }
-    buf.toArray
-  }
-
-  def genSequence[B](l: RDouble, r: RVal[B])(implicit f: B => Double): Array[Double] = {
-    if (l.isEmpty || r.isEmpty) return null
-    // warning for length > 1
-    val start = l.s(0)
-    val end = f(r.s(0))
-    val cond = if (start < end) (i: Double) => i <= end else (i: Double) => i >= end
-    val buf = new ArrayBuffer[Double]
-    var i = start
-    while(cond(i)) {
-      buf += i
-      i += (if (start < end) 1 else -1)
-    }
-    buf.toArray
-  }
-
-  def genSequence[B](l: RComplex, r: RVal[B])(implicit f: B => Double): Array[Double] = {
-    if (l.isEmpty || r.isEmpty) return null
-    // warning for length > 1
-    val start = l.s(0).r
-    val end = f(r.s(0))
-    val cond = if (start < end) (i: Double) => i <= end else (i: Double) => i >= end
-    val buf = new ArrayBuffer[Double]
-    var i = start
-    while(cond(i)) {
-      buf += i
-      i += (if (start < end) 1 else -1)
-    }
-    buf.toArray
-  }
-
-  def sum(l: RInt, r: RInt): RInt = RInt(modeIterate(l, r, (f: Int, s: Int) => f + s, RInt.NA))
-  def sum(l: RInt, r: RDouble): RDouble = RDouble(modeIterate(l, r, (f: Int, s: Double) => f.toDouble + s, RDouble.NA))
-  def sum(l: RInt, r: RComplex): RComplex = RComplex(modeIterate(l, r, (f: Int, s: Complex) => int2Complex(f) + s, RComplex.NA))
-
-  def sum(l: RDouble, r: RInt): RDouble = RDouble(modeIterate(l, r, (f: Double, s: Int) => f + s.toDouble, RDouble.NA))
-  def sum(l: RDouble, r: RDouble): RDouble = RDouble(modeIterate(l, r, (f: Double, s: Double) => f + s, RDouble.NA))
-  def sum(l: RDouble, r: RComplex): RComplex = RComplex(modeIterate(l, r, (f: Double, s: Complex) => double2Complex(f) + s, RComplex.NA))
-
-  def sum(l: RComplex, r: RInt): RComplex = RComplex(modeIterate(l, r, (f: Complex, s: Int) => f + int2Complex(s), RComplex.NA))
-  def sum(l: RComplex, r: RDouble): RComplex = RComplex(modeIterate(l, r, (f: Complex, s: Double) => f + double2Complex(s), RComplex.NA))
-  def sum(l: RComplex, r: RComplex): RComplex = RComplex(modeIterate(l, r, (f: Complex, s: Complex) => f + s, RComplex.NA))
-                                                               
-
-  def lt(l: RInt, r: RInt): RBool = RBool(modeIterate(l, r, (f: Int, s: Int) => boolean2Int(f < s), RBool.NA))
-  def lt(l: RInt, r: RDouble): RBool = RBool(modeIterate(l, r, (f: Int, s: Double) => boolean2Int(f.toDouble < s), RBool.NA))
-  def lt(l: RInt, r: RChar): RBool = RBool(modeIterate(l, r, (f: Int, s: String) => boolean2Int(f.toString < s), RBool.NA))
-
-  def lt(l: RDouble, r: RInt): RBool = RBool(modeIterate(l, r, (f: Double, s: Int) => boolean2Int(f.toDouble < s), RBool.NA))
-  def lt(l: RDouble, r: RDouble): RBool = RBool(modeIterate(l, r, (f: Double, s: Double) => boolean2Int(f < s), RBool.NA))
-  def lt(l: RDouble, r: RChar): RBool = RBool(modeIterate(l, r, (f: Double, s: String) => boolean2Int(f.toString < s), RBool.NA))
-
-  def lt(l: RChar, r: RInt): RBool = RBool(modeIterate(l, r, (f: String, s: Int) => boolean2Int(f < s.toString), RBool.NA))
-  def lt(l: RChar, r: RDouble): RBool = RBool(modeIterate(l, r, (f: String, s: Double) => boolean2Int(f < s.toString), RBool.NA))
-  def lt(l: RChar, r: RChar): RBool = RBool(modeIterate(l, r, (f: String, s: String) => boolean2Int(f < s), RBool.NA))
-
-
-  def seq(l: RInt, r: RInt): RInt = RInt(genSequence(l, r))
-  def seq(l: RInt, r: RDouble): RInt = RInt(genSequence(l, r)((d: Double) => d.toInt))
-  def seq(l: RInt, r: RComplex): RInt = RInt(genSequence(l, r)((c: Complex) => c.r.toInt))
-
-  def seq(l: RDouble, r: RInt): RDouble = RDouble(genSequence(l, r))
-  def seq(l: RDouble, r: RDouble): RDouble = RDouble(genSequence(l, r))
-  def seq(l: RDouble, r: RComplex): RDouble = RDouble(genSequence(l, r)((c: Complex) => c.r))
-
-  def seq(l: RComplex, r: RInt): RDouble = RDouble(genSequence(l, r))
-  def seq(l: RComplex, r: RDouble): RDouble = RDouble(genSequence(l, r))
-  def seq(l: RComplex, r: RComplex): RDouble = RDouble(genSequence(l, r)((c: Complex) => c.r))
-
-
-
-
-  def main(args: Array[String]) {
-    println(sum(RInt(Array.tabulate(1000)(_.toInt)), RDouble(Array.tabulate(10000)(_.toDouble))))
-    println(sum(RInt(1,2,3,4, 6, 7,2), RDouble(1.4,2.3, 5)))
-    println(sum(RInt(1,2,3), RDouble(1.4,2.3, 5, 4, 3,56 ,6)))
-    println(sum(RBool(1,2,3,4, 6, 7,2), RComplex(4.4,2.3, 5)))
-    println(sum(RBool(1,2,32), RBool()))
-    //new Array[Double](10000000)
-    //println(seq(RInt))
-  }
-}
-

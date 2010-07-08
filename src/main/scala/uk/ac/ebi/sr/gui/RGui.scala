@@ -75,7 +75,7 @@ object RGui extends SimpleSwingApplication {
     listenTo(inputArea)
     reactions += {
       case ButtonClicked(`execute`) => {
-        val parseResult = rExecutor.parseAndFormat(inputArea.text)
+        val parseResult = rExecutor.parseAndFormat(inputArea.text.trim)
         resultsArea append parseResult._1
         treeArea append parseResult._2
       }

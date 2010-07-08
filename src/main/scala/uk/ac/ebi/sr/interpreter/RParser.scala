@@ -232,22 +232,22 @@ object RParser extends StdTokenParsers {
   implicit def parserToRLangParser [T](p: Parser[T]): RLangParser[T] =
     new RLangParser[T] { q => def apply(in: Input) = p(in) }
 
-  def main(args: Array[String]) {
-    val input = new PagedSeqReader(PagedSeq.fromFile("r/src/temp.txt"))
-    val tokens = new lexical.Scanner(input)
-    val result = phrase(rProgram)(tokens)
-    result match {
-      case Success(tree, _) => println(tree)
-
-      case e: NoSuccess => {
-        Console.err.println(e)
-        exit(-1)
-      }
-    }
-  }
+//  def main(args: Array[String]) {
+//    val input = new PagedSeqReader(PagedSeq.fromFile("r/src/temp.txt"))
+//    val tokens = new lexical.Scanner(input.trim)
+//    val result = phrase(rProgram)(tokens)
+//    result match {
+//      case Success(tree, _) => println(tree)
+//
+//      case e: NoSuccess => {
+//        Console.err.println(e)
+//        exit(-1)
+//      }
+//    }
+//  }
 
   def parseUnwrap(input: String, f: => Parser[Expression] = program): Any = {
-    val tokens = new lexical.Scanner(input)
+    val tokens = new lexical.Scanner(input.trim)
     phrase(f)(tokens) match {
       case Success(tree, _) => tree
       case e: NoSuccess => {

@@ -2,8 +2,9 @@ package uk.ac.ebi.sr
 package interpreter
 
 import model.RVal._
-import model.Operations._
-import model.{Environment, Println, Builtin, RFunction, Closure, Assignable, Attributes, Attr, Length}
+import functions.Operations._
+import model.{Environment}
+import functions.{Println, Attr, Attributes, Length, Builtin, RFunction, Closure, Assignable}
 
 /**
  *
@@ -33,6 +34,7 @@ class Interpreter(mainEnv: Environment) {
 }
   //class for evaluating with the environment
 class Evaluator(environment: Environment) {
+  import functions.AsLogical._
   def env = environment
 
   def eval(e: Expression): Any = e match {
@@ -40,21 +42,30 @@ class Evaluator(environment: Environment) {
     // foreach is not used here because the last value of expression in block is returned
     case Block(l) => l.foldLeft((): Any) { (p, n) => eval(n) }
 
-    case IfStructure(If(ic, is), elseIfs, _else) => eval(ic) match {
-      case true => eval(is)
-      case false => {
-        for (ElseIf(c, s) <- elseIfs) eval(c) match {
-          case true => return eval(s)
-          case false => // do nothing
-          case _ => error("Not a boolean value in ElseIf expression")
+    case IfStructure(If(ic, is), elseIfs, _else) => {
+      val bool = `as.logical`(eval(ic))
+      if (bool.isEmpty) error("argument is of length zero")
+      if (bool.length > 1) {}// warning
+      bool.s(0) match {
+        case RBool.NA => error("missing value where TRUE/FALSE needed")
+        case 1 => return eval(is)
+        case 0 => for (ElseIf(c, s) <- elseIfs) {
+          val bool = `as.logical`(eval(c))
+          if (bool.isEmpty) error("argument is of length zero")
+          if (bool.length > 1) {}// warning
+          bool.s(0) match {
+            case RBool.NA => error("missing value where TRUE/FALSE needed")
+            case 1 => return eval(s)
+            case 0 => // do nothing
+            case _ => error("Not a boolean value in ElseIf expression")
+          }
         }
         _else match {
           case Some(Else(es)) => eval(es)
-          case _ =>
+          case _ => NULL
         }
-        NULL
+        case _ => error("Not a boolean value in If expression")
       }
-      case e => error("Not a boolean value in If expression : " + e) // todo toLogical interface usage to be added
     }
 
     case While(c, l) => {

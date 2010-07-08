@@ -18,6 +18,7 @@ class Complex(val r: Double, val i: Double) {
   def unary_- = new Complex(-r, -i)
 
   override def toString = "" + r + (if (i >= 0) "+" + i else i)  + "i"
+  def isZero = r == 0 && i == 0
 }
 
 object Complex {
