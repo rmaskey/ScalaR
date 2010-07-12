@@ -18,9 +18,8 @@ trait RTokens extends StdTokens {
     override def toString = chars
   }
 
-  case class ComplexNum(format: Token) extends Token {
-    def chars = format.chars
-    override def toString = chars
+  case class ComplexNum(chars: String) extends Token {
+    override def toString = chars + "i"
   }
 
   // class for user-defined operation like %xyz%
@@ -88,14 +87,17 @@ class RLexer extends Lexical with RTokens with RegexParsers {
     _delim
   }
 
-  protected def createNumberToken(d: String, m: String, e: String, i: String) = {
-    //d parameter is not null according to regex of number. Others can be null
-    val number = (d, m, e) match {
-      case (s, null, null) => NumericLit(s)
-      case (s, mant, null) => DecimalNum(s + mant)
-      case (s, null, float) => DecimalNum(s + float)
-      case (s, mant, float) => DecimalNum(s + mant + float)
-    }
-    if (i == null) number else ComplexNum(number)
+  protected def createNumberToken(d: String, m: String, e: String, i: String) = (m, e, i) match {
+      case (null, null, null) => NumericLit(d)
+      case (null, null, _) => ComplexNum(d)
+
+      case (mant, null, null) => DecimalNum(d + mant)
+      case (mant, null, _) => ComplexNum(d + mant)
+
+      case (null, float, null) => DecimalNum(d + float)
+      case (null, float, _) => ComplexNum(d + float)
+
+      case (mant, float, null) => DecimalNum(d + mant + float)
+      case (mant, float, _) => ComplexNum(d + mant + float)
   }
 }

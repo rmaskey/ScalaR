@@ -14,6 +14,10 @@ sealed abstract class Expression extends RObject {
   val `type` = Type.EXPRESSION
 }
 
+case class LDotList(l: List[FCallArg]) extends RObject {
+  val `type` = Type.DOTDOTDOT
+}
+
 case class Block(val l: List[Expression]) extends Expression
 
 case class IfStructure(_if: If, elseIf: List[ElseIf], _else: Option[Else]) extends Expression
@@ -26,7 +30,7 @@ case class For(_var: Var, expr: Expression, stats: Expression) extends Expressio
 
 case class Var(ident: String) extends Expression
 case class Lit(lit: String) extends Expression
-case class Num(v: Any) extends Expression
+case class Num(v: RObject) extends Expression
 
 case class FunDecl(params: List[FDeclArg], stats: Expression) extends Expression {
   require(params.filter(_ == ThreeLDots).length <= 1)
@@ -43,11 +47,11 @@ case class CallArg(e: Expression) extends FCallArg
 case class CallArgDef(name: String, e: Expression) extends FCallArg
 case object NoneArg extends FCallArg
 
-case class FunCall(function: Expression, args: List[Expression]) extends Expression
+case class FunCall(function: Expression, args: List[FCallArg]) extends Expression
 
 
-case class Index(e: Expression, subset: List[Expression]) extends Expression
-case class DIndex(e: Expression, subset: List[Expression]) extends Expression
+case class Index(e: Expression, subset: List[IndexArgument]) extends Expression
+case class DIndex(e: Expression, subset: List[IndexArgument]) extends Expression
 case class ExtractProperty(e: Expression, name: String) extends Expression
 case class ExtractSlot(e: Expression, name: String) extends Expression
 case class DoubleColon(l: String, r: String) extends Expression
@@ -55,7 +59,7 @@ case class TripleColon(l: String, r: String) extends Expression
 
 
 //class for [, 1] like indexes.
-abstract class IndexArgument extends Expression
+sealed abstract class IndexArgument extends Expression
 case object EmptyIndex extends IndexArgument
 case class IndexArg(e: Expression) extends IndexArgument
 
@@ -100,5 +104,8 @@ case class UnTilde(e: Expression) extends Expression
 case object Next extends Expression
 case object Break extends Expression
 
-case object NULL extends Expression
+case object NULL extends Expression {
+  def asString = "NULL"
+}
+case object NA extends Expression
 case object EOfF extends Expression

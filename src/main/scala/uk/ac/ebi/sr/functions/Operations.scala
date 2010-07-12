@@ -34,6 +34,16 @@ object Operations {
     res
   }
 
+  def convertArray[A, B](a: Array[A], f: A => B)(implicit m: Manifest[B]): Array[B] = {
+    //if (a == null) return null  this check is done in conversions
+    //if (a.length == 0) return new Array[B](0)
+    val buf = new ArrayBuffer[B](a.length)
+
+    var i = 0
+    while (i < a.length) { buf += f(a(i)); i += 1 }
+    buf.toArray
+  }
+
   def modeIterate[A, B, C](l: RVal[A], r: RVal[B], f: (A, B) => C, NA: C)(implicit m: Manifest[C]): Array[C] = {
     if (l.isEmpty || r.isEmpty) return null
     val la = l.s

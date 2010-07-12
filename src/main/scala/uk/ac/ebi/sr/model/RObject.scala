@@ -12,14 +12,14 @@ abstract class RObject {
 
   val `type`:Type.Type
 
-  lazy val attributes = collection.mutable.Map[String, Any]()
+  lazy val attributes = collection.mutable.Map[String, RObject]()
 
-  def attr(name: String) = attributes.get(name) match {
+  def attr(name: String): RObject = attributes.get(name) match {
     case Some(x) => x
     case None => NULL
   }
 
-  def `attr<-`(name: String, value: Any) = {
+  def `attr<-`(name: String, value: RObject): RObject = {
     attributes += name -> value
     value
   }

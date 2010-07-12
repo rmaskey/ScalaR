@@ -10,7 +10,7 @@ import uk.ac.ebi.sr.interpreter.NULL
  * @author Taalai Djumabaev
  */
 
-trait Sequential[S] {
+trait Sequential[S] extends RObject {
   def s: Array[S]
   lazy val length = if (s == null) 0 else s.length
 
@@ -20,14 +20,14 @@ trait Sequential[S] {
   val NA: S
 }
 
-trait RVal[T] extends RObject with Sequential[T] {
+trait RVal[T] extends Sequential[T] {
 
   def isNa(t: T): Boolean = t == NA
 
   def isEmpty = s == null || s.length == 0
   def empty: RVal[T]
 
-  override def toString = if (isEmpty) "NULL" else s.toList.toString
+  override def toString = if (isEmpty) NULL.asString else s.toList.toString
 }
 
 
@@ -39,20 +39,6 @@ object RVal {
 
   type Bool = Int
   implicit def rbool2RInt(b: RBool): RInt = if (b.isEmpty) RInt() else new RInt(b.s)
-  implicit def rInt2RBool(b: RInt): RBool = if (b.isEmpty) RBool() else new RBool(b.s)
-  implicit def rDouble2RBool(b: RDouble): RBool = if (b.isEmpty) RBool() else new RBool(convertArray(b.s, (e :Double) => e.toInt))
-  implicit def rComplex2RBool(b: RComplex): RBool = if (b.isEmpty) RBool() else new RBool(convertArray(b.s, (e: Complex) => if (e.isZero) 0 else 1))                                                                     //todo
-  implicit def rChar2RBool(b: RChar): RBool = if (b.isEmpty) RBool() else new RBool(convertArray(b.s, (e: String) => if (e == "TRUE" || e == "true") 1 else if (e == "FALSE" || e == "false") 0 else error("not possible")))
-
-  def convertArray[A, B](a: Array[A], f: A => B)(implicit m: Manifest[B]): Array[B] = {
-    //if (a == null) return null
-    //if (a.length == 0) return new Array[B](0)
-    val buf = new ArrayBuffer[B](a.length)
-
-    var i = 0
-    while (i < a.length) { buf += f(a(i)); i += 1 }
-    buf.toArray
-  }
 
   class RBool(val s: Array[Bool]) extends RVal[Bool] {
     lazy val `type` = RBool.`type`
@@ -73,7 +59,7 @@ object RVal {
     //not needed. since Int is used
     def apply() = BoolNull
     object BoolNull extends RBool(null) {
-      override def toString = "NULL"
+      override def toString = NULL.asString
     }
     val NA = java.lang.Integer.MAX_VALUE
     val `type` = Type.LOGICAL
@@ -97,7 +83,7 @@ object RVal {
     def apply(s: Array[Int]) = if (s == null) IntNull else new RInt(s)
     def apply() = IntNull
     object IntNull extends RInt(null) {
-      override def toString = "NULL"
+      override def toString = NULL.asString
     }
     val `type` = Type.INTEGER
     val NA = java.lang.Integer.MAX_VALUE
@@ -121,7 +107,7 @@ object RVal {
     def apply(s: Array[Double]) = if (s == null) DoubleNull else new RDouble(s)
     def apply() = DoubleNull
     object DoubleNull extends RDouble(null) {
-      override def toString = "NULL"
+      override def toString = NULL.asString
     }
     val `type` = Type.DOUBLE
     val NA = java.lang.Double.MAX_VALUE
@@ -145,7 +131,7 @@ object RVal {
     def apply(s: Array[Complex]) = if (s == null) ComplexNull else new RComplex(s)
     def apply() = ComplexNull
     object ComplexNull extends RComplex(null) {
-      override def toString = "NULL"
+      override def toString = NULL.asString
     }
     val `type` = Type.COMPLEX
     val NA = null.asInstanceOf[Complex]
@@ -169,7 +155,7 @@ object RVal {
     def apply(s: Array[String]) = if (s == null) CharNull else new RChar(s)
     def apply() = CharNull
     object CharNull extends RChar(null) {
-      override def toString = "NULL"
+      override def toString = NULL.asString
     }
     val `type` = Type.CHARACTER // or char?
     val NA = null.asInstanceOf[String]

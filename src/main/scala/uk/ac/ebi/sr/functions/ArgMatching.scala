@@ -2,7 +2,7 @@ package uk.ac.ebi.sr
 package functions
 
 import interpreter._
-import model.Environment
+import model.{Environment, RObject}
 
 /**
  *
@@ -70,7 +70,7 @@ trait ArgMatching {
     val (f, s) = declArgs span (_.name != "...")
     val unTaggedForProcess = if (s.isEmpty) unTagged else {
       val (a, b) = unTagged splitAt f.size
-      env += ("...", b)
+      env += ("...", LDotList(b))
       a
     }
     if (unTaggedForProcess.size > f.size) error(unTaggedForProcess +  " unused parameters present " + f) //todo toString method in Args
@@ -93,7 +93,7 @@ trait ArgMatching {
   import scala.collection.mutable.Map
 
   def evalArgs(args: List[FCallArg], fEnv: Environment, enclosing: Environment) = {
-    val env = new Environment(Map[String, Any](), Some(enclosing))
+    val env = new Environment(Map[String, RObject](), Some(enclosing))
     val tagged = args filter (_.isInstanceOf[CallArgDef])
     val (declArgs, remaining) = if (tagged.size > 0)
       matchTags(tagged.asInstanceOf[List[CallArgDef]], params, fEnv, env) else (params, List())

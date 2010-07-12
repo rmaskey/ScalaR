@@ -7,8 +7,7 @@ package uk.ac.ebi.sr.model
  */
 
 class Complex(val r: Double, val i: Double) {
-  def this(r: Double) = this(r, 0.0)
-
+  
   def + (that: Complex) = new Complex(r + that.r, i + that.i)
   def - (that: Complex) = new Complex(r - that.r, i - that.i)
 
@@ -22,8 +21,8 @@ class Complex(val r: Double, val i: Double) {
 }
 
 object Complex {
-  implicit def double2Complex(d: Double): Complex = new Complex(d)
-  implicit def int2Complex(i: Int): Complex = new Complex(i)
+  implicit def double2Complex(d: Double): Complex = new Complex(d, 0)
+  implicit def int2Complex(i: Int): Complex = new Complex(i, 0)
   implicit def complex2String(i: Complex): String = i.toString
 }
 

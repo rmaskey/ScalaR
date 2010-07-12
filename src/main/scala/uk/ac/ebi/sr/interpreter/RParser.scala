@@ -122,9 +122,9 @@ object RParser extends StdTokenParsers {
                                     case _pow ~ _ => _pow }
     )
   def pow = apply ~~ ((dIndex | index | args | extractProperty | extractSlot)*) ^^
-      { case ap ~ subs => subs.foldLeft(ap) { case (v, "[[" ~ sub) => DIndex(v, sub)
-                                              case (v, "[" ~ sub) => Index(v, sub)
-                                              case (v, "(" ~ app) => FunCall(v, app)
+      { case ap ~ subs => subs.foldLeft(ap) { case (v, "[[" ~ sub) => DIndex(v, sub.asInstanceOf[List[IndexArgument]])
+                                              case (v, "[" ~ sub) => Index(v, sub.asInstanceOf[List[IndexArgument]])
+                                              case (v, "(" ~ app) => FunCall(v, app.asInstanceOf[List[FCallArg]])
                                               case (v, "$" ~ ext) => ExtractProperty(v, ext mkString)
                                               case (v, "@" ~ ext) => ExtractSlot(v, ext mkString) } }
 
@@ -159,19 +159,17 @@ object RParser extends StdTokenParsers {
     | "{" ~> program <~ "}"
     | integerNumber ^^ { i => Num(i) }
     | decimalNumber ^^ { i => Num(i) }
-    | complexNum ^^ { i => Num(i) }
     | funDecl
+    | complexNum ^^ { i => Num(i) }
+    | special
     )
 
   def name: RLangParser[String] = ident | stringLiteral
   def boolean = "TRUE" ^^^ True | "FALSE" ^^^ False
+  def special = "NA" ^^^ NA | "NULL" ^^^ NULL | "Inf" ^^^ Inf
 
-  def complexNum[Complex] = elem("complex number", _.isInstanceOf[ComplexNum]) ^^
-    ((_:Elem).asInstanceOf[ComplexNum].format match {
-      case i: NumericLit => i.chars.toInt
-      case d: DecimalNum => d.chars.toDouble
-      case _ => error("undefined format of number")
-    })
+  def complexNum[RComplex] = elem("complex number", _.isInstanceOf[ComplexNum]) ^^
+      { case s => RComplex(0, s.chars.toDouble) }
   def integerNumber: RLangParser[RInt] = elem("integer", _.isInstanceOf[NumericLit]) ^^
       { case s => RInt(s.chars.toInt) }
   def decimalNumber: RLangParser[RDouble] = elem("decimal number", _.isInstanceOf[DecimalNum]) ^^
