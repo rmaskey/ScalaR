@@ -11,6 +11,6 @@ import org.scalatest.junit.JUnitRunner
  */
 
 @RunWith(classOf[JUnitRunner])
-class OperationsSuite extends FunSuite {
+class ComplexOperationsSuite extends FunSuite {
   
 }

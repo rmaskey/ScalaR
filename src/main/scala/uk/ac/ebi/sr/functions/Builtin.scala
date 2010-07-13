@@ -37,7 +37,7 @@ case object Attr extends Builtin with Assignable {
   val WHICH = "which"
   val EXACT = "exact"
   val DIM = "dim"
-  val params = List[FDeclArg](new DeclArg(X), new DeclArg(WHICH), new DeclArgDef(EXACT, new Num(RBool(0))))
+  val params = List[FDeclArg](DeclArg(X), DeclArg(WHICH), DeclArgDef(EXACT, Num(RBool(0))))
 
   protected def apply(env: Environment): RObject = {
     (env.resolve(X), env.resolve(WHICH)) match {
@@ -67,7 +67,7 @@ case object Attr extends Builtin with Assignable {
 
 case object Attributes extends Builtin {
   val OBJ = "obj"
-  val params = List[FDeclArg](new DeclArg(OBJ))
+  val params = List[FDeclArg](DeclArg(OBJ))
 
   protected def apply(env: Environment): RObject = {
     env.resolve(OBJ) match {
@@ -81,7 +81,7 @@ case object Attributes extends Builtin {
 
 case object Length extends Builtin with Assignable {
   val X = "x"
-  val params = List[FDeclArg](new DeclArg(X))
+  val params = List[FDeclArg](DeclArg(X))
   val zeroLength = RInt(0)
 
   protected def apply(env: Environment): RObject = {
@@ -117,7 +117,7 @@ case object Length extends Builtin with Assignable {
 case object AsLogical extends Builtin {
   import Operations.convertArray
   val X = "x"
-  val params = List[FDeclArg](new DeclArg(X))
+  val params = List[FDeclArg](DeclArg(X))
 
   protected def apply(env: Environment): RObject = {
     env.resolve(X) match {
@@ -138,6 +138,25 @@ case object AsLogical extends Builtin {
       else error("argument is not interpretable as logical")))
     case _ => error("argument is not interpretable as logical")
   }
+}
+
+case object AsInteger extends Builtin {
+  import Operations.convertArray
+  val X = "x"
+  val params = List[FDeclArg](DeclArg(X))
+
+  protected def apply(env: Environment): RObject = {
+    env.resolve(X) match {
+      //todo to changde Any to RObject since string is RChar
+      case Some(r) => `as.integer`(r)
+      case _ => NULL
+    }
+  }
+
+  def `as.integer`(x: Any): RInt = x match {
+    case _ =>
+  }
+
 }
 
 
