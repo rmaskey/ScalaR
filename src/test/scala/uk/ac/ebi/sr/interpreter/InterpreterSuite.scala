@@ -5,6 +5,8 @@ import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
+import Helper._
+
 /**
  *
  * Date: 01.06.2010
@@ -13,12 +15,6 @@ import org.junit.runner.RunWith
 
 @RunWith(classOf[JUnitRunner])
 class InterpreterSuite extends FunSuite {
-  def evaluate(input: String): Any = {
-    RParser.parseUnwrap(input) match {
-      case e: Expression => Interpreter.interpret(e)._1
-      case _ => None
-    }
-  }
 
   test("argument matching mechanism with environment bindings test ") {
     val input =

@@ -7,8 +7,17 @@ import uk.ac.ebi.sr.interpreter.NULL
  * Date: 20.05.2010
  * @author Taalai Djumabaev
  */
+trait ReferenceCounter {
+  var counter = 0
 
-abstract class RObject {
+  def addReferencer() = counter += 1
+  def removeReferencer() = counter -= 1
+
+  def isMultiReferenced = counter > 1
+  def isNotReferenced = counter <= 0
+}
+
+abstract class RObject extends ReferenceCounter with Cloneable {
 
   val `type`:Type.Type
 
@@ -21,6 +30,8 @@ abstract class RObject {
 
   def `attr<-`(name: String, value: RObject): RObject = {
     attributes += name -> value
-    value
+    this
   }
+
+  override def clone() = super.clone
 }

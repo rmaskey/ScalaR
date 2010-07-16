@@ -12,6 +12,8 @@ import model.RVal.RChar
 
 sealed abstract class Expression extends RObject {
   val `type` = Type.EXPRESSION
+
+  def declaration: Option[String] = None
 }
 
 case class LDotList(l: List[FCallArg]) extends RObject {

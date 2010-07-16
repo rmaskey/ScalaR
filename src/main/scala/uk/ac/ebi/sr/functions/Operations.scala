@@ -3,7 +3,7 @@ package functions
 
 import collection.mutable.ArrayBuffer
 import interpreter.NULL
-import model.{Complex, RVal, RObject}
+import model.{Complex, RVal, RObject, Sequential}
 
 /**
  *
@@ -20,9 +20,9 @@ object Operations {
   }
 
   import functions.Attr._
-  def dim[A, B, F <: RObject](a: RVal[A], b: RVal[B], f: => F) = {
+  def dim[A, B, F <: RObject](a: Sequential[A], b: Sequential[B], f: => F) = {
     val attribute = (attr(a, DIM), attr(b, DIM)) match {
-      //todo should be coersion done
+      //when the dim is set - it is coerced to RInt
       case (l: RInt, r: RInt) => if (true) l else error("non-comformable arrays")
       case (l: RInt, NULL) => if (a.length >= b.length) l else error("non-comformable arrays") //todo also warning if not a multiple
       case (NULL, r: RInt) => if (b.length >= a.length) r else error("non-comformable arrays") //todo also warning if not a multiple
@@ -35,8 +35,7 @@ object Operations {
   }
 
   def convertArray[A, B](a: Array[A], f: A => B)(implicit m: Manifest[B]): Array[B] = {
-    //if (a == null) return null  this check is done in conversions
-    //if (a.length == 0) return new Array[B](0)
+    if (a == null || a.length == 0) return null
     val buf = new ArrayBuffer[B](a.length)
 
     var i = 0
@@ -44,7 +43,7 @@ object Operations {
     buf.toArray
   }
 
-  def modeIterate[A, B, C](l: RVal[A], r: RVal[B], f: (A, B) => C, NA: C)(implicit m: Manifest[C]): Array[C] = {
+  def modeIterate[A, B, C](l: Sequential[A], r: Sequential[B], f: (A, B) => C, NA: C)(implicit m: Manifest[C]): Array[C] = {
     if (l.isEmpty || r.isEmpty) return null
     val la = l.s
     val ra = r.s
@@ -61,7 +60,7 @@ object Operations {
     buf.toArray
   }
 
-  def genSequence[B](l: RInt, r: RVal[B])(implicit f: B => Int): Array[Int] = {
+  def genSequence[B](l: RInt, r: Sequential[B])(implicit f: B => Int): Array[Int] = {
     if (l.isEmpty || r.isEmpty) return null
     // warning for length > 1
     val start = l.s(0)
@@ -76,7 +75,7 @@ object Operations {
     buf.toArray
   }
 
-  def genSequence[B](l: RDouble, r: RVal[B])(implicit f: B => Double): Array[Double] = {
+  def genSequence[B](l: RDouble, r: Sequential[B])(implicit f: B => Double): Array[Double] = {
     if (l.isEmpty || r.isEmpty) return null
     // warning for length > 1
     val start = l.s(0)
@@ -91,7 +90,7 @@ object Operations {
     buf.toArray
   }
 
-  def genSequence[B](l: RComplex, r: RVal[B])(implicit f: B => Double): Array[Double] = {
+  def genSequence[B](l: RComplex, r: Sequential[B])(implicit f: B => Double): Array[Double] = {
     if (l.isEmpty || r.isEmpty) return null
     // warning for length > 1
     val start = l.s(0).r

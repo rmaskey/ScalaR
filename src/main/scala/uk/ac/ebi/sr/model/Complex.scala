@@ -6,7 +6,7 @@ package uk.ac.ebi.sr.model
  * @author Taalai Djumabaev
  */
 
-class Complex(val r: Double, val i: Double) {
+class Complex(val r: Double, val i: Double = 0.) {
   
   def + (that: Complex) = new Complex(r + that.r, i + that.i)
   def - (that: Complex) = new Complex(r - that.r, i - that.i)

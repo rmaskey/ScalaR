@@ -11,9 +11,14 @@ import interpreter.{Evaluator, Expression}
  */
 
 class Environment(val ids: Map[String, RObject], parent: Option[Environment]) extends RObject {
-  //lazy val child = new Environment(Map[String, RObject](), Some(this))
+  parent match {
+    case Some(x: Environment) => x.children += this
+    case None => // do nothing
+  }
+  lazy val children = collection.mutable.ListBuffer[Environment]()
 
   val `type` = Type.ENVIRONMENT
+  var isBound = false
 
   def ++= (l: List[(String, RObject)]) = {
     for ((k, v) <- l) this += (k, v)
@@ -26,8 +31,11 @@ class Environment(val ids: Map[String, RObject], parent: Option[Environment]) ex
       case _ => value
     }
     ids += (id -> v)
+    v.addReferencer
     this
   }
+
+  def resolveLocal(id: String): Option[RObject] = if (ids contains id) ids get id else None
 
   def resolve(id: String): Option[RObject] = {
     if (ids contains id) ids get id
@@ -47,5 +55,19 @@ class Environment(val ids: Map[String, RObject], parent: Option[Environment]) ex
 
   override def toString() = {
     ids.toString
+  }
+
+  def cleanAll() {
+    cleanUp()
+    parent match {
+      case Some(x: Environment) => x.children -= this
+      case None => // do nothing
+    }
+  }
+
+  def cleanUp() {
+    children.foreach(_.cleanUp)
+    ids.foreach(_._2.removeReferencer)
+    ids.clear
   }
 }

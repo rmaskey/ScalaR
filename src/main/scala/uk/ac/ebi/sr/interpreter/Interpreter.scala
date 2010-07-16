@@ -32,10 +32,9 @@ class Interpreter(mainEnv: Environment) {
   }
 }
   //class for evaluating with the environment
-class Evaluator(environment: Environment) {
+class Evaluator(val env: Environment) {
   import functions.AsLogical._
   import functions.Subset._
-  def env = environment
 
   def eval(e: Expression): RObject = e match {
 
@@ -73,16 +72,19 @@ class Evaluator(environment: Environment) {
         if (bool.isEmpty) error("argument is of length zero")
         if (bool.length > 1) {}// warning
         bool.s(0) match {
-        case RBool.NA => error("missing value where TRUE/FALSE needed")
-        case 1 => true
-        case 0 => false
-        case _ => error("Not a boolean value in While expression")
+          case RBool.NA => error("missing value where TRUE/FALSE needed")
+          case 1 => true
+          case 0 => false
+          case _ => error("Not a boolean value in While expression")
         }
       }) eval(l)
       NULL
     }
 
-    case FunDecl(p, l) => Closure(p, l, env)
+    case FunDecl(p, l) => {
+      env.isBound_=(true)
+      Closure(p, l, env)
+    }
 
     case FunCall(func, args) => {
       eval(func) match {
@@ -266,20 +268,46 @@ class Evaluator(environment: Environment) {
     //no evaluation of left part is performed.
     case Assign(l, r) => val v = eval(r);
     l match {
-      case Var(id) => env += (id, v); v
-      case Lit(lit) => env += (lit, v); v
+      case Var(id) => {
+        env.resolveLocal(id) match {
+          case Some(x: RObject) => x.removeReferencer
+          case None => // do nothing
+        }
+        env += (id, v); v
+      }
+      case Lit(lit) => {
+        env.resolveLocal(lit) match {
+          case Some(x: RObject) => x.removeReferencer
+          case None => // do nothing
+        }
+        env += (lit, v); v
+      }
       case FunCall(f, a) => eval(f) match {
-        case built: Assignable => built `<-`(a, env, v)
+        case built: Assignable => built `<-`(a, env, v); v
+        case _ => error("couldn't find function " + f + "<-") //todo
       }
       case _ => error("wrong left part of the assignment ")
     }
 
     case AssignToRight(l, r)  => val v = eval(l);
     r match {
-      case Var(id) => env += (id, v); v
-      case Lit(lit) => env += (lit, v); v
+      case Var(id) => {
+        env.resolveLocal(id) match {
+          case Some(x: RObject) => x.removeReferencer
+          case None => // do nothing
+        }
+        env += (id, v); v
+      }
+      case Lit(lit) => {
+        env.resolveLocal(lit) match {
+          case Some(x: RObject) => x.removeReferencer
+          case None => // do nothing
+        }
+        env += (lit, v); v
+      }
       case FunCall(f, a) => eval(f) match {
-        case built: Assignable => built `<-`(a, env, v)
+        case built: Assignable => built `<-`(a, env, v); v // todo reassignment
+        case _ => error("couldn't find function " + f + "<-") //todo
       }
       case _ => error("wrong right part of the assignment ")
     }
@@ -288,11 +316,17 @@ class Evaluator(environment: Environment) {
       val v = eval(l);
       r match {
         case Var(id) => env.resolveWithEnv(id) match {
-          case Some((i, e: Environment)) => e += (id, v)
+          case Some((i, e: Environment)) => {
+            i.removeReferencer
+            e += (id, v)
+          }
           case None => env += (id, v)
         }
         case Lit(lit) => env.resolveWithEnv(lit) match {
-          case Some((i, e: Environment)) => e += (lit, v)
+          case Some((i, e: Environment)) => {
+            i.removeReferencer
+            e += (lit, v)
+          }
           case None => env += (lit, v)
         }
         case _ => error("wrong right part of the assignment ")
@@ -302,10 +336,23 @@ class Evaluator(environment: Environment) {
 
     case AssignToLeft(l, r) => val v = eval(r);
     l match {
-      case Var(id) => env += (id, v); v
-      case Lit(lit) => env += (lit, v); v
+      case Var(id) => {
+        env.resolveLocal(id) match {
+          case Some(x: RObject) => x.removeReferencer
+          case None => // do nothing
+        }
+        env += (id, v); v
+      }
+      case Lit(lit) => {
+        env.resolveLocal(lit) match {
+          case Some(x: RObject) => x.removeReferencer
+          case None => // do nothing
+        }
+        env += (lit, v); v
+      }
       case FunCall(f, a) => eval(f) match {
-        case built: Assignable => built `<-`(a, env, v)
+        case built: Assignable => built `<-`(a, env, v); v // todo reassignment
+        case _ => error("couldn't find function " + f + "<-") //todo
       }
       case _ => error("wrong left part of the assignment ")
     }
@@ -314,11 +361,17 @@ class Evaluator(environment: Environment) {
       val v = eval(r);
       l match {
         case Var(id) => env.resolveWithEnv(id) match {
-          case Some((i, e: Environment)) => e += (id, v)
+          case Some((i, e: Environment)) => {
+            i.removeReferencer
+            e += (id, v)
+          }
           case None => env += (id, v)
         }
         case Lit(lit) => env.resolveWithEnv(lit) match {
-          case Some((i, e: Environment)) => e += (lit, v)
+          case Some((i, e: Environment)) => {
+            i.removeReferencer
+            e += (lit, v)
+          }
           case None => env += (lit, v)
         }
         case _ => error("wrong left part of the assignment ")

@@ -1,32 +1,26 @@
-package uk.ac.ebi.sr.functions
+package uk.ac.ebi.sr
+package functions
 
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
-import uk.ac.ebi.sr.interpreter.{RParser, Expression, Interpreter}
+import model.RVal._
+import functions._
 
+import Helper._
 /**
  *
  * Date: Jul 7, 2010
  * @author Taalai Djumabaev
  */
 
-@RunWith(classOf[JUnitRunner])
+@RunWith(classOf[JUnitRunner]   )
 class OperationsSuite extends FunSuite {
 
-  def evaluate(input: String): Any = {
-    RParser.parseUnwrap(input) match {
-      case e: Expression => Interpreter.interpret(e)._1
-      case _ => None
-    }
-  }
+  test("length assignment test ") {
+    val input = " x <- 1: 10; length(x) <- 3; x "
 
-//  test("argument matching mechanism with environment bindings test ") {
-//    val input =
-//      """ y = 1000;
-//          z = function(x = 5, foo = {2 + 4}, fob, ...) { x + fob + foo + y };
-//          z(,,12) """
-//    // todo to change when printing is fixed
-//    assert(evaluate(input).toString == "List(1023)")
-//  }
+    //println(Length.`length<-`(RInt(Array.tabulate(10)(_.toInt)), 7))
+    assert(evaluate(input).toString == "List(1, 2, 3)")
+  }
 }

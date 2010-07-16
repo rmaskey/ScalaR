@@ -24,7 +24,10 @@ case class Closure(val params: List[FDeclArg], expr: Expression, env: Environmen
   def environment = env
 
   def apply(args: List[FCallArg], fEnv: Environment) = {
-    Evaluator.eval(expr, evalArgs(args, fEnv, env))
+    val newEnv = evalArgs(args, fEnv, env)
+    val res = Evaluator.eval(expr, newEnv)
+    if (!newEnv.isBound) newEnv.cleanAll
+    res
   }
 
   override def toString() = "Closure"

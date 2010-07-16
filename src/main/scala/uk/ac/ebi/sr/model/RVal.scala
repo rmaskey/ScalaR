@@ -1,8 +1,10 @@
-package uk.ac.ebi.sr.model
+package uk.ac.ebi.sr
+package model
 
 import collection.mutable.ArrayBuffer
 import reflect.Manifest
-import uk.ac.ebi.sr.interpreter.NULL
+import interpreter.NULL
+import rutils.NAs
 
 /**
  *
@@ -16,15 +18,25 @@ trait Sequential[S] extends RObject {
 
   def replicate(len: Int): Array[S] = s
 
-  def resize(i: Int): Sequential[S]
+  def applyF(f: => Array[S]): Sequential[S]
+
+  def applyChange(f: Array[S] => Any): Sequential[S] = if (isNotReferenced) {
+    f(this.s)
+    this
+  } else {
+    val cloned = this.clone.asInstanceOf[Sequential[S]]
+    f(cloned.s)
+    cloned
+  }
+
+  def isNa(t: S): Boolean = t == NA
+  def isEmpty = s == null || s.length == 0
   val NA: S
+  val m: Manifest[S]
 }
 
 trait RVal[T] extends Sequential[T] {
 
-  def isNa(t: T): Boolean = t == NA
-
-  def isEmpty = s == null || s.length == 0
   def empty: RVal[T]
 
   override def toString = if (isEmpty) NULL.asString else s.toList.toString
@@ -43,15 +55,10 @@ object RVal {
   class RBool(val s: Array[Bool]) extends RVal[Bool] {
     lazy val `type` = RBool.`type`
     lazy val NA = RBool.NA
+    lazy val m = RBool.m
     def empty = RBool()
 
-    def resize(i: Int): RBool = {
-      if (i == length) return this
-      val newSeq = Array.tabulate(i)(_ => NA)
-      s.copyToArray(newSeq, 0, math.min(length, i))
-      //all irrelevant attributes are not copied
-      new RBool(newSeq)
-    }
+    def applyF(f: => Array[Bool]) = RBool(f)
   }
   object RBool {
     def apply(xs: Bool*) = new RBool(xs.toArray)
@@ -61,22 +68,19 @@ object RVal {
     object BoolNull extends RBool(null) {
       override def toString = NULL.asString
     }
-    val NA = java.lang.Integer.MAX_VALUE
+    val NA = NAs.intNA
     val `type` = Type.LOGICAL
+    val m = Manifest.Int
   }
 
   class RInt(val s: Array[Int]) extends RVal[Int] {
     lazy val `type` = RInt.`type`
-    lazy val NA =RInt.NA
+    lazy val NA = RInt.NA
+    lazy val m = RInt.m
     def empty = RInt()
 
-    def resize(i: Int): RInt = {
-      if (i == length) return this
-      val newSeq = Array.tabulate(i)(_ => NA)
-      s.copyToArray(newSeq, 0, math.min(length, i))
-      //all irrelevant attributes are not copied
-      new RInt(newSeq)
-    }
+    def applyF(f: => Array[Int]) = RInt(f)
+
   }
   object RInt {
     def apply(xs: Int*) = new RInt(xs.toArray)
@@ -86,21 +90,17 @@ object RVal {
       override def toString = NULL.asString
     }
     val `type` = Type.INTEGER
-    val NA = java.lang.Integer.MAX_VALUE
+    val NA = NAs.intNA
+    val m = Manifest.Int
   }
 
   class RDouble(val s: Array[Double]) extends RVal[Double] {
     lazy val `type` = RDouble.`type`
     lazy val NA = RDouble.NA
+    lazy val m = RDouble.m
     def empty = RDouble()
 
-    def resize(i: Int): RDouble = {
-      if (i == length) return this
-      val newSeq = Array.tabulate(i)(_ => NA)
-      s.copyToArray(newSeq, 0, math.min(length, i))
-      //all irrelevant attributes are not copied
-      new RDouble(newSeq)
-    }
+    def applyF(f: => Array[Double]) = RDouble(f)
   }
   object RDouble {
     def apply(xs: Double*) = new RDouble(xs.toArray)
@@ -110,21 +110,17 @@ object RVal {
       override def toString = NULL.asString
     }
     val `type` = Type.DOUBLE
-    val NA = java.lang.Double.MAX_VALUE
+    val NA = NAs.doubleNA
+    val m = Manifest.Double
   }
 
   class RComplex(val s: Array[Complex]) extends RVal[Complex] {
     lazy val `type` = RComplex.`type`
     lazy val NA = RComplex.NA
+    lazy val m = RComplex.m
     def empty = RComplex()
 
-    def resize(i: Int): RComplex = {
-      if (i == length) return this
-      val newSeq = Array.tabulate(i)(_ => NA)
-      s.copyToArray(newSeq, 0, math.min(length, i))
-      //all irrelevant attributes are not copied
-      new RComplex(newSeq)
-    }
+    def applyF(f: => Array[Complex]) = RComplex(f)
   }
   object RComplex {
     def apply(xs: Complex*) = new RComplex(xs.toArray)
@@ -134,21 +130,17 @@ object RVal {
       override def toString = NULL.asString
     }
     val `type` = Type.COMPLEX
-    val NA = null.asInstanceOf[Complex]
+    val NA = NAs.complexNA
+    val m = Manifest.classType[Complex](classOf[Complex])
   }
 
   class RChar(val s: Array[String]) extends RVal[String] {
     lazy val `type` = RChar.`type`
-    lazy val NA =RChar.NA
+    lazy val NA = RChar.NA
+    lazy val m = RChar.m
     def empty = RChar()
-    
-    def resize(i: Int): RChar = {
-      if (i == length) return this
-      val newSeq = Array.tabulate(i)(_ => NA)
-      s.copyToArray(newSeq, 0, math.min(length, i))
-      //all irrelevant attributes are not copied
-      new RChar(newSeq)
-    }
+
+    def applyF(f: => Array[String]) = RChar(f)
   }
   object RChar {
     def apply(xs: String*) = new RChar(xs.toArray)
@@ -158,6 +150,7 @@ object RVal {
       override def toString = NULL.asString
     }
     val `type` = Type.CHARACTER // or char?
-    val NA = null.asInstanceOf[String]
+    val NA = NAs.charNA
+    val m = Manifest.classType[String](classOf[String])
   }
 }

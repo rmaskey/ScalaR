@@ -12,11 +12,29 @@ import model._
  */
 trait Assignable extends ArgMatching {
   def `<-`(args: List[FCallArg], fEnv: Environment, newValue: RObject): RObject = {
-    assign(evalArgs(args, fEnv, fEnv), newValue)
-    newValue
+    //it is never empty list
+    val name = args.head match {
+      case CallArg(Var(i)) => i
+      case CallArg(Lit(i)) => i
+      case CallArgDef(n, Var(i)) => i
+      case CallArgDef(n, Lit(i)) => i
+      case NoneArg => error("invalid (NULL) left side of assignment")
+      case _ => error("target of assignment expands to non-language object")
+    }
+    val newEnv = evalArgs(args, fEnv, fEnv)
+    val res = assign(newEnv, newValue)
+    fEnv.resolveWithEnv(name) match {
+      case Some((o, e)) => if (o != res) {
+        o.removeReferencer
+        e += (name, res)
+      }
+      case None => //can't get here
+    }
+    if (!newEnv.isBound) newEnv.cleanAll
+    res
   }
 
-  protected def assign(env: Environment, newValue: RObject)
+  protected def assign(env: Environment, newValue: RObject): RObject
 }
 
 abstract class Builtin extends RObject with ArgMatching with RFunction {
@@ -26,7 +44,12 @@ abstract class Builtin extends RObject with ArgMatching with RFunction {
 
   lazy val `type` = Type.BUILTIN
 
-  def apply(args: List[FCallArg], fEnv: Environment) = apply(evalArgs(args, fEnv, fEnv))
+  def apply(args: List[FCallArg], fEnv: Environment) = {
+    val newEnv = evalArgs(args, fEnv, fEnv)
+    val res = apply(newEnv)
+    if (!newEnv.isBound) newEnv.cleanAll
+    res
+  }
 
   protected def apply(env: Environment): RObject
 }
@@ -39,28 +62,24 @@ case object Attr extends Builtin with Assignable {
   val DIM = "dim"
   val params = List[FDeclArg](DeclArg(X), DeclArg(WHICH), DeclArgDef(EXACT, Num(RBool(0))))
 
-  protected def apply(env: Environment): RObject = {
-    (env.resolve(X), env.resolve(WHICH)) match {
-      case (Some(r), Some(n: RChar)) if (n.length == 1) => attr(r, n.s(0))
-      case _ => NULL
-    }
+  protected def apply(env: Environment): RObject = (env.resolve(X), env.resolve(WHICH)) match {
+    case (Some(r), Some(n: RChar)) if (n.length == 1) => attr(r, n.s(0))
+    case _ => NULL
   }
 
-  protected def assign(env: Environment, newValue: RObject) = {
-    (env.resolve(X), env.resolve(WHICH)) match {
-      case (Some(r), Some(w: RChar)) if (w.length == 1) => `attr<-`(r, w.s(0), newValue)
-      case _ => NULL
-    }
+  protected def assign(env: Environment, newValue: RObject) =  (env.resolve(X), env.resolve(WHICH)) match {
+    case (Some(r), Some(w: RChar)) if (w.length == 1) => `attr<-`(r, w.s(0), newValue)
+    case _ => NULL
   }
 
   def attr(r: RObject, n: String) = r.attr(n)
 
   def `attr<-`(r: RObject, n: String, v: RObject) = {
     n match {
-//      case DIM => r match {   TODO length should be checked
+//      case DIM => r match {   TODO length should be checked and coercion should be done
 //        case s: Sequential[Any] => s
 //      }
-      case _ => r.`attr<-`(n, v)
+      case _ => if (r.isMultiReferenced) r.clone.asInstanceOf[RObject].`attr<-`(n, v) else r.`attr<-`(n, v)
     }
   }
 }
@@ -69,44 +88,52 @@ case object Attributes extends Builtin {
   val OBJ = "obj"
   val params = List[FDeclArg](DeclArg(OBJ))
 
-  protected def apply(env: Environment): RObject = {
-    env.resolve(OBJ) match {
-      case Some(r) => println(r.attributes); NULL ///this.attributes(r)
-      case _ => NULL
-    }
+  protected def apply(env: Environment): RObject = env.resolve(OBJ) match {
+    case Some(r) => println(r.attributes); NULL ///this.attributes(r)
+    case _ => NULL
   }
 
   def attributes(r: RObject) = println(r.attributes); NULL // todo should return a list of attributes
 }  
 
 case object Length extends Builtin with Assignable {
+  import AsInteger._
   val X = "x"
   val params = List[FDeclArg](DeclArg(X))
   val zeroLength = RInt(0)
 
-  protected def apply(env: Environment): RObject = {
-    env.resolve(X) match {
-      case Some(r) => RInt(length(r))
-      case _ => NULL
-    }
+  protected def apply(env: Environment): RObject = env.resolve(X) match {
+    case Some(r) => RInt(length(r))
+    case _ => NULL
   }
 
   protected def assign(env: Environment, newValue: RObject) = {
     if (!newValue.isInstanceOf[RInt]) error("invalid value for length")
     env.resolve(X) match {
       case Some(r: Sequential[Any]) => {
-        //todo a global coersion method toRInt
-        val nv = newValue.asInstanceOf[RInt]
+        val nv = `as.integer`(newValue)
         if (nv.length != 1) error("invalid argument for length ")
         //previous value of 'x' will be lost
-        env += (X, `length<-`(r, nv.s(0)))
+        val len = nv.s(0)
+        if (len < 0) error("vector length cannot be negative")
+        val res = `length<-`(r, len)(r.m)
+        env += (X, res)
+        res
       }
       case Some(r) => error("invalid argument for length assignment")
       case _ => NULL
     }
   }
 
-  def `length<-`[C](r: Sequential[C], nv: Int) = r.resize(nv)
+  def `length<-`[C](r: Sequential[C], nv: Int)(implicit m: Manifest[C]) = {
+    if (nv == r.s.length) r
+    else r.applyF({
+      val newSeq = Array.tabulate[C](nv)(_ => r.NA)
+      r.s.copyToArray(newSeq, 0, math.min(r.s.length, nv))
+      newSeq
+    })
+  }
+  //def `length<-`[C](r: Sequential[C], nv: Int) = r.resize(nv)
 
   def length(r: RObject) = r match {
     case s: Sequential[Any] => s.length
@@ -116,45 +143,45 @@ case object Length extends Builtin with Assignable {
 
 case object AsLogical extends Builtin {
   import Operations.convertArray
+  import rutils.BoolCoercion._
   val X = "x"
   val params = List[FDeclArg](DeclArg(X))
 
   protected def apply(env: Environment): RObject = {
     env.resolve(X) match {
-      //todo to changde Any to RObject since string is RChar
       case Some(r) => `as.logical`(r)
       case _ => NULL
     }
   }
 
-  def `as.logical`(x: Any): RBool = x match {
+  def `as.logical`(x: RObject): RBool = x match {
     case b: RBool => b
-    case i: RInt => if (i.isEmpty) RBool() else new RBool(i.s)
-    case d: RDouble => if (d.isEmpty) RBool() else new RBool(convertArray(d.s, (e :Double) => e.toInt))
-    case c: RComplex => if (c.isEmpty) RBool() else new RBool(convertArray(c.s, (e: Complex) => if (e.isZero) 0 else 1))
-    case c: RChar => if (c.isEmpty) RBool() else new RBool(convertArray(c.s, (e: String) =>
-      if (e == "TRUE" || e == "true") 1
-      else if (e == "FALSE" || e == "false") 0
-      else error("argument is not interpretable as logical")))
-    case _ => error("argument is not interpretable as logical")
+    case i: RInt => RBool(i.s) // unless we change the bool type
+    case d: RDouble => RBool(convertArray(d.s, (e: Double) => double2Bool(e)))
+    case c: RComplex => RBool(convertArray(c.s, (e: Complex) => complex2Bool(e)))
+    case c: RChar => RBool(convertArray(c.s, (e: String) => char2Bool(e)))//in if - error("argument is not interpretable as logical")))
+    case _ => error("argument of type " + x.`type` + " is not interpretable as logical vector")
   }
 }
 
 case object AsInteger extends Builtin {
   import Operations.convertArray
+  import rutils.IntCoercion._
   val X = "x"
   val params = List[FDeclArg](DeclArg(X))
 
-  protected def apply(env: Environment): RObject = {
-    env.resolve(X) match {
-      //todo to changde Any to RObject since string is RChar
-      case Some(r) => `as.integer`(r)
-      case _ => NULL
-    }
+  protected def apply(env: Environment): RObject = env.resolve(X) match {
+    case Some(r) => `as.integer`(r)
+    case _ => NULL
   }
 
-  def `as.integer`(x: Any): RInt = x match {
-    case _ =>
+  def `as.integer`(x: RObject): RInt = x match {
+    case b: RBool => RInt(b.s) // unless we change the bool type
+    case i: RInt => i
+    case d: RDouble => RInt(convertArray(d.s, (e: Double) => double2Int(e)))
+    case c: RComplex => RInt(convertArray(c.s, (e: Complex) => complex2Int(e)))
+    case c: RChar => RInt(convertArray(c.s, (e: String) => char2Int(e)))
+    case _ => error("argument of type " + x.`type` + " is not interpretable as integer vector")
   }
 
 }
