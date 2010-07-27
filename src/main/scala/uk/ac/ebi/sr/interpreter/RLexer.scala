@@ -11,7 +11,6 @@ import util.parsing.combinator.lexical.Lexical
  * Date: 14.03.2010
  * @author Taalai Djumabaev
  */
-
 trait RTokens extends StdTokens {
 
   case class DecimalNum(chars: String) extends Token {

@@ -11,16 +11,22 @@ import rutils.NAs
  * Date: Jun 25, 2010
  * @author Taalai Djumabaev
  */
-
 trait Sequential[S] extends RObject {
   def s: Array[S]
   lazy val length = if (s == null) 0 else s.length
 
   def replicate(len: Int): Array[S] = s
 
+  def forall(f: S => Boolean): Boolean = {
+    var i = 0
+    while (i < length) if (!f(s(i))) return false else i += 1
+    true
+  }
+  // todo do we need this? def apply(i: Int) = s(i - 1)
+
   def applyF(f: => Array[S]): Sequential[S]
 
-  def applyChange(f: Array[S] => Any): Sequential[S] = if (isNotReferenced) {
+  def applyChange(f: Array[S] => Any): Sequential[S] = if (isNotReferenced) {    //todo write a test. or referenced once?
     f(this.s)
     this
   } else {

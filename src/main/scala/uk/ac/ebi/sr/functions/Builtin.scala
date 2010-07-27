@@ -56,10 +56,14 @@ abstract class Builtin extends RObject with ArgMatching with RFunction {
 
 
 case object Attr extends Builtin with Assignable {
+  import AsInteger._
+
   val X = "x"
   val WHICH = "which"
-  val EXACT = "exact"
+  val EXACT = "exact"   // will be used when non-atomic vectors appear
   val DIM = "dim"
+  val DIM_NAMES = "dimnames"
+  val NAMES = "names"
   val params = List[FDeclArg](DeclArg(X), DeclArg(WHICH), DeclArgDef(EXACT, Num(RBool(0))))
 
   protected def apply(env: Environment): RObject = (env.resolve(X), env.resolve(WHICH)) match {
@@ -76,9 +80,17 @@ case object Attr extends Builtin with Assignable {
 
   def `attr<-`(r: RObject, n: String, v: RObject) = {
     n match {
-//      case DIM => r match {   TODO length should be checked and coercion should be done
-//        case s: Sequential[Any] => s
-//      }
+      case DIM => r match {
+        case s: Sequential[Any] => {
+          val product = `as.integer`(v).s.foldLeft(1)((a, b) => a * b)
+          if (product == s.length) {
+            if (r.isMultiReferenced) r.clone.asInstanceOf[RObject].`attr<-`(n, v) else r.`attr<-`(n, v)
+          } else error("product of dims: " + product + " did not match the object length: " + s.length)
+        }
+        case _ => error("wrong left part of the assignment")
+      }
+      //case DIM_NAMES =>
+      //case NAMES =>
       case _ => if (r.isMultiReferenced) r.clone.asInstanceOf[RObject].`attr<-`(n, v) else r.`attr<-`(n, v)
     }
   }
@@ -113,11 +125,9 @@ case object Length extends Builtin with Assignable {
       case Some(r: Sequential[Any]) => {
         val nv = `as.integer`(newValue)
         if (nv.length != 1) error("invalid argument for length ")
-        //previous value of 'x' will be lost
         val len = nv.s(0)
         if (len < 0) error("vector length cannot be negative")
         val res = `length<-`(r, len)(r.m)
-        env += (X, res)
         res
       }
       case Some(r) => error("invalid argument for length assignment")
@@ -133,7 +143,6 @@ case object Length extends Builtin with Assignable {
       newSeq
     })
   }
-  //def `length<-`[C](r: Sequential[C], nv: Int) = r.resize(nv)
 
   def length(r: RObject) = r match {
     case s: Sequential[Any] => s.length

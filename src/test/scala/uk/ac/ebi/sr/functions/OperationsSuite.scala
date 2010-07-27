@@ -21,6 +21,6 @@ class OperationsSuite extends FunSuite {
     val input = " x <- 1: 10; length(x) <- 3; x "
 
     //println(Length.`length<-`(RInt(Array.tabulate(10)(_.toInt)), 7))
-    assert(evaluate(input).toString == "List(1, 2, 3)")
+    assert(equalSeq(evaluate(input).asInstanceOf[RInt], RInt(1, 2, 3)))
   }
 }

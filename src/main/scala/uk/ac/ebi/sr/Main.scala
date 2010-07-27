@@ -1,9 +1,10 @@
 package uk.ac.ebi.sr
 
+import functions.{TwoDimensionalSubset, Operations, Subset}
 import interpreter.RLexer
 import collection.mutable.ArrayBuffer
 import model.{Type, RObject}
-import functions.Operations
+import model.RVal._
 
 /**
  *
@@ -21,50 +22,23 @@ object Main {
 
   def lots[F](n: Int, f: => F): F = if (n <= 1) f else {f; lots(n - 1, f)}
 
-  def adSum(ad: Array[Double]) = {
-    var sum = 0.0
-    var i = 0
-    while (i < ad.length) {sum += ad(i); i += 1}
-    sum
+  class Check[A] {
+
   }
 
-  def addTwo(a: Array[Double], d: Array[Double]) = {
-    var i = 0
-    val buf = new ArrayBuffer[Double](a.length)
-    while (i < a.length) {
-      buf += a(i) + d(i)
-      i+=1
-    }
-    buf.toArray
-  }
-
-  class A
-  class B extends A {
-    def b() = 0
-  }
+  class CheckInt[Int] extends Check[Int]
+  class CheckDouble[Double] extends Check[Double]
 
   def main(args: Array[String]) {
-    val size = 1000000
-    val trials = 1
-    val i = Integer.MAX_VALUE
-    println(java.lang.Double.parseDouble("111111e2222222"))
-    val b = List[A](new B())
-    b.asInstanceOf[List[B]].head.b
-    println(-2.5.toInt )
-//    val a = Array.tabulate(size)(_.toDouble)
-//    val d = Array.tabulate(size)(_.toDouble)
-//    val ab = new collection.mutable.ArrayBuffer[Double] ++ a
-//    import model.RVal._
-//    val ra = RDouble(a)
-//    val rd = RDouble(d)
-//    time(lots(trials, addTwo(a,d)), trials)
-//    time(lots(trials, Operations.sum(ra,rd)), trials)
-//
-//
-//    time(lots(trials, ab.sum), trials)
-//    time(lots(trials, (0.0 /: ab)(_ + _)), trials)
-//    time(lots(trials, (0.0 /: a)(_ + _)), trials)
-//    time(lots(trials, {var s = 0.0; ab.foreach(s += _); s}), trials)
-//    time(lots(trials, adSum(a)), trials)
+
+    val size = 200000
+    val ri = RInt(Array.tabulate(size)(_.toInt))
+    ri.`attr<-`("dim", RInt(400, 500))
+
+    val in = (RInt(Array.tabulate(300)(_.toInt + 1)), RDouble(Array.tabulate(400)(_.toDouble + 1)))
+    val lin = List(in._1, in._2)
+
+    time(lots(10000, TwoDimensionalSubset(ri, 400, 500, in)), 10)
+    time(lots(10000, Subset.`[`(ri, lin)), 10)
   }
 }

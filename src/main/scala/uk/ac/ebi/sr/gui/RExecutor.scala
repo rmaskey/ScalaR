@@ -9,7 +9,6 @@ import model.Environment
  * Date: 20.05.2010
  * @author Taalai Djumabaev
  */
-
 class RExecutor(var env: Environment) {
 
   def parseAndFormat(input: String): (String, String) = {

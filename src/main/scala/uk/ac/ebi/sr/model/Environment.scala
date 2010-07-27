@@ -9,7 +9,6 @@ import interpreter.{Evaluator, Expression}
  * Date: 30.05.2010
  * @author Taalai Djumabaev
  */
-
 class Environment(val ids: Map[String, RObject], parent: Option[Environment]) extends RObject {
   parent match {
     case Some(x: Environment) => x.children += this
@@ -57,17 +56,19 @@ class Environment(val ids: Map[String, RObject], parent: Option[Environment]) ex
     ids.toString
   }
 
-  def cleanAll() {
-    cleanUp()
-    parent match {
-      case Some(x: Environment) => x.children -= this
-      case None => // do nothing
-    }
+  def cleanAll() = if (cleanUp()) parent match {
+    case Some(x: Environment) => x.children -= this
+    case None => // do nothing
   }
 
-  def cleanUp() {
-    children.foreach(_.cleanUp)
-    ids.foreach(_._2.removeReferencer)
-    ids.clear
+  def cleanUp(): Boolean = {
+    var allCleaned = true
+    children.foreach(e => if (!e.isBound) e.cleanUp else allCleaned = false)
+    if (allCleaned) {
+      children.clear
+      ids.foreach(_._2.removeReferencer)
+      ids.clear
+    }
+    allCleaned
   }
 }

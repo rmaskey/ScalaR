@@ -8,7 +8,6 @@ import uk.ac.ebi.sr.model.Complex
  * Date: Jul 13, 2010
  * @author Taalai Djumabaev
  */
-
 object NAs {
   val boolNA: Int = java.lang.Integer.MAX_VALUE
   val intNA: Int = java.lang.Integer.MAX_VALUE

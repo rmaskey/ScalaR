@@ -9,12 +9,11 @@ import java.awt.{Font, Insets, Point}
 import uk.ac.ebi.sr.model.Environment
 
 /**
- * RGUI works
+ * RGUI
  *
  * Date: 19.05.2010
  * @author Taalai Djumabaev
  */
-
 object RGui extends SimpleSwingApplication {
   try {
     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());

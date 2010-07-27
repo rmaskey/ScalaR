@@ -9,11 +9,8 @@ import model.RVal.RChar
  * Date: 19.03.2010
  * @author Taalai Djumabaev
  */
-
 sealed abstract class Expression extends RObject {
   val `type` = Type.EXPRESSION
-
-  def declaration: Option[String] = None
 }
 
 case class LDotList(l: List[FCallArg]) extends RObject {

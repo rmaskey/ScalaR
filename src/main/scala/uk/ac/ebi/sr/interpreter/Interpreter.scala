@@ -3,8 +3,8 @@ package interpreter
 
 import model.RVal._
 import functions.Operations._
-import functions.{Attr, Attributes, Length, Builtin, RFunction, Closure, Assignable, Subset}
-import model.{RObject, Environment}
+import functions._
+import model.{Sequential, RObject, Environment}
 
 /**
  *
@@ -27,7 +27,9 @@ class Interpreter(mainEnv: Environment) {
             List(
               "attr" -> Attr,
               "attributes" -> Attributes,
-              "length" -> Length))
+              "length" -> Length,
+              "as.integer" -> AsInteger,
+              "as.logical" -> AsLogical))
     (evaluator.eval(tree), evaluator.env)
   }
 }
@@ -116,10 +118,10 @@ class Evaluator(val env: Environment) {
     case False => RBool(0)
     case NULL => NULL
 
-    case Index(e, s) => `[`(eval(e), for (i <- s) yield { i match {
-      case em @ EmptyIndex => em
-      case IndexArg(expr) => eval(expr) }
-    })
+    case Index(e, s) => eval(e) match {
+      case seq: Sequential[Any] => `[`(seq, evalIndexArgs(s))(seq.m)
+      case o => error(o.`type` + " is not subsettable")
+    }
     case DIndex(e, s) => error("unimplemented operation [[ ")//todo
 
 
@@ -254,7 +256,7 @@ class Evaluator(val env: Environment) {
     }
 
     case Eq(l, r) => error("Unsupported operation '=' ")
-    case NotEq(l, r) => error("Unsupported operation '!=' ")//eval(l) != eval(r)
+    case NotEq(l, r) => error("Unsupported operation '!=' ")
 
     case And(l, r) => (eval(l), eval(r)) match {
       case _ => error("Unsupported operation for '&&'")
@@ -265,7 +267,6 @@ class Evaluator(val env: Environment) {
     //    case OrVectorized(l, r)  =>
     //    case Tilde(l, r)  =>
 
-    //no evaluation of left part is performed.
     case Assign(l, r) => val v = eval(r);
     l match {
       case Var(id) => {
@@ -286,6 +287,7 @@ class Evaluator(val env: Environment) {
         case built: Assignable => built `<-`(a, env, v); v
         case _ => error("couldn't find function " + f + "<-") //todo
       }
+      case Index(e, s) => `[<-`(e, evalIndexArgs(s), env, v); v
       case _ => error("wrong left part of the assignment ")
     }
 
@@ -306,9 +308,10 @@ class Evaluator(val env: Environment) {
         env += (lit, v); v
       }
       case FunCall(f, a) => eval(f) match {
-        case built: Assignable => built `<-`(a, env, v); v // todo reassignment
+        case built: Assignable => built `<-`(a, env, v); v
         case _ => error("couldn't find function " + f + "<-") //todo
       }
+      case Index(e, s) => `[<-`(e, evalIndexArgs(s), env, v); v
       case _ => error("wrong right part of the assignment ")
     }
 
@@ -351,9 +354,10 @@ class Evaluator(val env: Environment) {
         env += (lit, v); v
       }
       case FunCall(f, a) => eval(f) match {
-        case built: Assignable => built `<-`(a, env, v); v // todo reassignment
+        case built: Assignable => built `<-`(a, env, v); v
         case _ => error("couldn't find function " + f + "<-") //todo
       }
+      case Index(e, s) => `[<-`(e, evalIndexArgs(s), env, v); v
       case _ => error("wrong left part of the assignment ")
     }
 
@@ -398,6 +402,10 @@ class Evaluator(val env: Environment) {
 
     case a => error("unsupported expression got. " + a)
   }
+
+  def evalIndexArgs(l: List[IndexArgument]) = for (i <- l) yield (i match {
+    case em @ EmptyIndex => em
+    case IndexArg(expr) => eval(expr) })
 }
 
 object Evaluator {

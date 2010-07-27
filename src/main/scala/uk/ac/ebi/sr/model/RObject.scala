@@ -33,5 +33,7 @@ abstract class RObject extends ReferenceCounter with Cloneable {
     this
   }
 
+  def dropAttr(names: String*) = for (name <- names) attributes.remove(name)
+
   override def clone() = super.clone
 }

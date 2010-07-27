@@ -9,7 +9,6 @@ import NAs._
  * Date: Jul 13, 2010
  * @author Taalai Djumabaev
  */
-
 object BoolCoercion {
 
   def char2Bool(s: String): Bool = if (s == charNA) boolNA // needed since NA is just null
@@ -43,7 +42,7 @@ object IntCoercion {
   def char2Int(s: String): Int = {
     if (s == charNA) intNA
     else try {
-      Integer.decode(s).intValue
+      java.lang.Double.valueOf(s).doubleValue.toInt
     } catch { case e: NumberFormatException => intNA }
   }
 }
@@ -80,7 +79,16 @@ object ComplexCoercion {
 }
 
 object CharCoercion {
-  //todo
+
+  def bool2Char(b: Bool) = b match {
+    case 1 => "TRUE"
+    case 0 => "FALSE"
+    case `boolNA` => charNA
+    case a => error("internal error: undefined value for boolean " + a) 
+  }
+
+  def int2Char(i: Int): String = if (i == intNA) charNA else i.toString
+
   def double2Char(d: Double): String = if (d == doubleNA) charNA else d.toString
 
   def complex2Char(c: Complex): String = if (c == complexNA) charNA else c.toString
