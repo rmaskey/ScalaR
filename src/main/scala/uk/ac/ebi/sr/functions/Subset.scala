@@ -203,9 +203,6 @@ object Subset {
 
   def ind2Value(ind: Array[Int], multiples: Array[Int]) = {
     require(ind.length == multiples.length)
-//    println
-//    print("ind: ");printArray(ind)
-//    print("mul: ");printArray(multiples)
     var res = 0
     val len = ind.length
     var i = 0
@@ -213,7 +210,6 @@ object Subset {
       res += (ind(i) - 1) * multiples(i)
       i += 1
     }
-    //println("res: " + res)
     res
   }
 
