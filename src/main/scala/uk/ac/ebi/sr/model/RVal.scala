@@ -15,8 +15,6 @@ trait Sequential[S] extends RObject {
   def s: Array[S]
   lazy val length = if (s == null) 0 else s.length
 
-  def replicate(len: Int): Array[S] = s
-
   def forall(f: S => Boolean): Boolean = {
     var i = 0
     while (i < length) if (!f(s(i))) return false else i += 1
@@ -24,15 +22,15 @@ trait Sequential[S] extends RObject {
   }
   // todo do we need this? def apply(i: Int) = s(i - 1)
 
-  def applyF(f: => Array[S]): Sequential[S]
+  def applyF(f: => Array[S]): Sequential[S]      //todo should also copy needed attributes
 
-  def applyChange(f: Array[S] => Any): Sequential[S] = if (isNotReferenced) {    //todo write a test. or referenced once?
-    f(this.s)
-    this
-  } else {
+  def applyChange(f: Array[S] => Any): Sequential[S] = if (isMultiReferenced) {    //todo write a test. or referenced once?
     val cloned = this.clone.asInstanceOf[Sequential[S]]
     f(cloned.s)
     cloned
+  } else {
+    f(this.s)
+    this
   }
 
   def isNa(t: S): Boolean = t == NA
@@ -51,9 +49,6 @@ trait RVal[T] extends Sequential[T] {
 
 
 object RVal {
-  abstract class RList extends RVal[Any] {
-
-  }
 
   type Bool = Int
   implicit def rbool2RInt(b: RBool): RInt = if (b.isEmpty) RInt() else new RInt(b.s)

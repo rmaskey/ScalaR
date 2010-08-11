@@ -57,10 +57,12 @@ abstract class Builtin extends RObject with ArgMatching with RFunction {
 
 case object Attr extends Builtin with Assignable {
   import AsInteger._
+  import AsCharacter._
+  import Length._
 
   val X = "x"
   val WHICH = "which"
-  val EXACT = "exact"   // will be used when non-atomic vectors appear
+  val EXACT = "exact"   // todo will be used when non-atomic vectors appear
   val DIM = "dim"
   val DIM_NAMES = "dimnames"
   val NAMES = "names"
@@ -81,19 +83,28 @@ case object Attr extends Builtin with Assignable {
   def `attr<-`(r: RObject, n: String, v: RObject) = {
     n match {
       case DIM => r match {
-        case s: Sequential[Any] => {
+        case s: Sequential[_] => {
           val product = `as.integer`(v).s.foldLeft(1)((a, b) => a * b)
-          if (product == s.length) {
-            if (r.isMultiReferenced) r.clone.asInstanceOf[RObject].`attr<-`(n, v) else r.`attr<-`(n, v)
-          } else error("product of dims: " + product + " did not match the object length: " + s.length)
+          if (product == s.length) setAttr(r, DIM, v)
+          else error("product of dims: " + product + " did not match the object length: " + s.length)
         }
         case _ => error("wrong left part of the assignment")
       }
       //case DIM_NAMES =>
-      //case NAMES =>
-      case _ => if (r.isMultiReferenced) r.clone.asInstanceOf[RObject].`attr<-`(n, v) else r.`attr<-`(n, v)
+      case NAMES => r match {
+        case s: Sequential[_] => {
+          val names = `as.character`(v)
+          if (names.length > s.length) error("'names' attribute must be the same length as the vector")
+          else setAttr(s, NAMES, `length<-`(names, s.length))
+        }
+        case _ => setAttr(r, n, v)
+      }
+      case _ => setAttr(r, n, v)
     }
   }
+
+  def setAttr(r: RObject, n: String, v: RObject) =
+      if (r.isMultiReferenced) r.clone.asInstanceOf[RObject].`attr<-`(n, v) else r.`attr<-`(n, v)
 }
 
 case object Attributes extends Builtin {
@@ -101,11 +112,11 @@ case object Attributes extends Builtin {
   val params = List[FDeclArg](DeclArg(OBJ))
 
   protected def apply(env: Environment): RObject = env.resolve(OBJ) match {
-    case Some(r) => println(r.attributes); NULL ///this.attributes(r)
+    case Some(r) => this.attributes(r)
     case _ => NULL
   }
 
-  def attributes(r: RObject) = println(r.attributes); NULL // todo should return a list of attributes
+  def attributes(r: RObject) = {println(r.attributes); NULL }// todo should return a list of attributes
 }  
 
 case object Length extends Builtin with Assignable {
@@ -122,7 +133,7 @@ case object Length extends Builtin with Assignable {
   protected def assign(env: Environment, newValue: RObject) = {
     if (!newValue.isInstanceOf[RInt]) error("invalid value for length")
     env.resolve(X) match {
-      case Some(r: Sequential[Any]) => {
+      case Some(r: Sequential[_]) => {
         val nv = `as.integer`(newValue)
         if (nv.length != 1) error("invalid argument for length ")
         val len = nv.s(0)
@@ -141,60 +152,87 @@ case object Length extends Builtin with Assignable {
       val newSeq = Array.tabulate[C](nv)(_ => r.NA)
       r.s.copyToArray(newSeq, 0, math.min(r.s.length, nv))
       newSeq
-    })
+    })                     //todo no attrbute copying is done
   }
 
   def length(r: RObject) = r match {
-    case s: Sequential[Any] => s.length
+    case s: Sequential[_] => s.length
     case _ => 0
   }
 }
 
-case object AsLogical extends Builtin {
-  import Operations.convertArray
-  import rutils.BoolCoercion._
-  val X = "x"
-  val params = List[FDeclArg](DeclArg(X))
-
-  protected def apply(env: Environment): RObject = {
-    env.resolve(X) match {
-      case Some(r) => `as.logical`(r)
-      case _ => NULL
-    }
-  }
-
-  def `as.logical`(x: RObject): RBool = x match {
-    case b: RBool => b
-    case i: RInt => RBool(i.s) // unless we change the bool type
-    case d: RDouble => RBool(convertArray(d.s, (e: Double) => double2Bool(e)))
-    case c: RComplex => RBool(convertArray(c.s, (e: Complex) => complex2Bool(e)))
-    case c: RChar => RBool(convertArray(c.s, (e: String) => char2Bool(e)))//in if - error("argument is not interpretable as logical")))
-    case _ => error("argument of type " + x.`type` + " is not interpretable as logical vector")
-  }
-}
-
-case object AsInteger extends Builtin {
-  import Operations.convertArray
-  import rutils.IntCoercion._
+case object TypeOf extends Builtin {
   val X = "x"
   val params = List[FDeclArg](DeclArg(X))
 
   protected def apply(env: Environment): RObject = env.resolve(X) match {
-    case Some(r) => `as.integer`(r)
+    case Some(r) => typeof(r)
     case _ => NULL
   }
 
-  def `as.integer`(x: RObject): RInt = x match {
-    case b: RBool => RInt(b.s) // unless we change the bool type
-    case i: RInt => i
-    case d: RDouble => RInt(convertArray(d.s, (e: Double) => double2Int(e)))
-    case c: RComplex => RInt(convertArray(c.s, (e: Complex) => complex2Int(e)))
-    case c: RChar => RInt(convertArray(c.s, (e: String) => char2Int(e)))
-    case _ => error("argument of type " + x.`type` + " is not interpretable as integer vector")
-  }
-
+  def typeof(o: RObject) = RChar(o.`type`.toString)
 }
 
+
+case object Concat extends Builtin {
+  import Operations.concatArrays
+  import AsInteger._
+  import AsLogical._
+  import AsDouble._
+  import AsCharacter._
+
+  val params = List[FDeclArg](ThreeLDots)
+  val ldots = "..."
+
+  protected def apply(env: Environment): RObject = env.resolve(ldots) match {
+    case Some(LDotList(l)) => {
+      val evaluator = new Evaluator(env)
+      concat(for (fa <- l) yield fa match {
+        case CallArg(e) => evaluator.eval(e)
+        case CallArgDef(n, e) => {
+          val res = evaluator.eval(e)
+          env += (n, res)
+          res
+        }
+        case _ => error("internal error: wrong arguments for funcall ")
+      })
+    }
+    case _ => NULL
+  }
+
+  def concat(obs: Seq[RObject]): RObject = {
+    if (obs.size == 0) return NULL
+    if (obs.size == 1) return obs.head
+    var value = 0
+    for (o <- obs) {
+      val res = Type.typeValue(o.`type`)
+      if (value < res) value = res
+    }
+    var totalLength = 0
+    value match {
+      case 1 => concatArrays(obs, `as.logical`)(RBool.m)
+      case 2 => concatArrays(obs, `as.integer`)(RInt.m)
+      case 3 => concatArrays(obs, `as.double`)(RDouble.m)
+      case 4 =>  NULL  //todo complex
+      case 5 => concatArrays(obs, `as.character`)(RChar.m)
+      case _ => RList(obs.toArray)
+    }
+  }
+}
+
+case object RLangList {
+
+  val params = List[FDeclArg]()
+
+  
+}
+
+trait Primitive extends RObject {
+  lazy val `type` = Type.BUILTIN
+
+    
+
+}
 
 // try, which, print, colnames, rownames, is.null, write.table, list, index, $, %in%, return,  diag(n), log2(x),
 // new("AnnotatedDataFrame", data=efscv), require

@@ -23,7 +23,7 @@ object TwoDimensionalSubset {
     val ri = RInt(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
     ri.`attr<-`("dim", RInt(2, 5))
     //val in = (RInt(3, 2, 1), RInt(-1, -2))
-    val in = (RInt(-1, -2), RInt(3, 2, 5, 1))
+    val in = (RInt(-1), RInt(3, 2, 5, 1))
     println(TwoDimensionalSubset(ri, 2, 5, in))
   }
 }

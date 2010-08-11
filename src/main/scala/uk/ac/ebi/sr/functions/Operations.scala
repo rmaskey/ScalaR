@@ -34,6 +34,24 @@ object Operations {
     res
   }
 
+  def concatArrays[B](obs: Seq[RObject], f: RObject => Sequential[B])(implicit m: Manifest[B]): RObject = {
+    var totalLength = 0
+    val list = for (o <- obs) yield {
+      val seq = f(o)
+      totalLength += seq.length
+      seq
+    }
+    list.head.applyF({
+      val res = new Array[B](totalLength)
+      var i = 0
+      for (l <- list) {
+        l.s.copyToArray(res, i)
+        i += l.length
+      }
+      res
+    })
+  }
+  
   def convertArray[A, B](a: Array[A], f: A => B)(implicit m: Manifest[B]): Array[B] = {
     if (a == null || a.length == 0) return null
     val buf = new ArrayBuffer[B](a.length)

@@ -15,6 +15,8 @@ import rutils.NAs
  */
 object Subset {
 
+  //todo subsetting by matrix is not implemented yet
+  //todo support for EXACT = TRUE/FALSE
   def `[`[A](seq: Sequential[A], dimSubset: List[RObject])(implicit m: Manifest[A]): RObject =
     (seq.attr(Attr.DIM), dimSubset.size) match {
       case (s: Sequential[Int], 1) =>
@@ -40,27 +42,39 @@ object Subset {
         if (isMultidimensional(o) && dimSubset.size > 1) NULL // todo multidimensional case
         else if (dimSubset.size > 1) error("wrong number of dimensions for " + name)
         else {
-          val res = (o, newValue) match {
-            case (s: Sequential[Any]) => {
-              NULL
+          val res: RObject = (o, newValue) match {
+            case (s: Sequential[_], nseq: Sequential[_]) => {   //todo make type changes when assigning diff types
+              if (nseq.isEmpty) error("replacement has length zero")
+              val ind = getIndexes(dimSubset.head, s.length)        //dimsubset cannot be of size == 0
+              if (nseq.length > ind.length) error("replacement length is longer then number of items to replace")
+              if (ind.length % nseq.length != 0) {} //todo warning ("number of items to replace is not a multiple of replacement length")
+              s.applyChange(a => oneDimensionalAssignment(nseq.s, ind)(a)(s.m))
             }
             case (obj, _) => error(obj.`type` + " is not subsettable")
           }
           o.removeReferencer
           e += (name, res)
+          res
         }
-      case None => //can't get here
+      case None => NULL //can't get here
     }
-    NULL
   }
 
-  def oneDimensionalAssignment[B](seq: Sequential[B], index: RObject, newValue: RObject) = {
-    if (newValue.`type` == seq.`type`)
-    newValue match {
-
-      case n: Sequential[B] =>
-      case _ =>
+  def oneDimensionalAssignment[A, B](r: Array[B], ind: Array[Int])(a: Array[A])(implicit m: Manifest[A]): Array[A] = {
+    printArray(r)
+    printArray(a)
+    printArray(ind)
+    val b = r.asInstanceOf[Array[A]]
+    val nLen = ind.length
+    val len = b.length
+    var i = 0
+    var j = 0
+    while (i < nLen) {
+      a(ind(i) - 1) = b(j)
+      i += 1
+      if (j < len - 1) j += 1 else j = 0
     }
+    a
   }
 
   def multiDimensional[B](seq: Sequential[B], index: List[RObject])(implicit m: Manifest[B]) = {
@@ -74,30 +88,32 @@ object Subset {
     var j = 0
     var resultLen = 1
     for (ob <- index) {
-      val dimj = dim(j)
-      val add = ob match {
-        case b: RBool => if (b.length > dimj) error("(subscript) logical subscript too long") else extendBool(b, dimj)
-        case i: RInt =>
-          isOfOneSign(i) match {
-            case (true, false) => if (i.forall((a: Int) => a <= dimj)) i.s else error("subscript out of bounds")
-            case (false, true) => negateInd(i, dimj)
-            case _ => error("only 0's may be mixed with negative subscripts")
-          }
-        case d: RDouble =>
-          val i = `as.integer`(d)
-          isOfOneSign(i) match {
-            case (true, false) => if (i.forall((a: Int) => a <= dimj)) i.s else error("subscript out of bounds")
-            case (false, true) => negateInd(i, dimj)
-            case _ => error("only 0's may be mixed with negative subscripts")
-          }
-        case EmptyIndex => Array.tabulate[Int](dimj)(_ + 1)
-        case o => error("invalid subscript type: " + o.`type`)
-      }
+      val add = getIndexes(ob, dim(j))
       buf += add
       resultLen *= add.length
       j += 1
     }
     seq.applyF(subsetMultiple(seq, multiples(dim), buf.toArray, resultLen))
+  }
+
+  //todo indexes should be returned starting from zero not from one. efficiency will increase for no extra +-1's
+  def getIndexes(ob: RObject, dim: Int) = ob match {
+    case b: RBool => if (b.length > dim) error("(subscript) logical subscript too long") else extendBool(b, dim)
+    case i: RInt =>
+      isOfOneSign(i) match {
+        case (true, false) => if (i.forall((a: Int) => a <= dim)) i.s else error("subscript out of bounds")
+        case (false, true) => negateInd(i, dim)
+        case _ => error("only 0's may be mixed with negative subscripts")
+      }
+    case d: RDouble =>
+      val i = `as.integer`(d)
+      isOfOneSign(i) match {
+        case (true, false) => if (i.forall((a: Int) => a <= dim)) i.s else error("subscript out of bounds")
+        case (false, true) => negateInd(i, dim)
+        case _ => error("only 0's may be mixed with negative subscripts")
+      }
+    case EmptyIndex => Array.tabulate[Int](dim)(_ + 1)
+    case o => error("invalid subscript type: " + o.`type`)
   }
 
   def extendBool(b: RBool, size: Int) = {
@@ -134,7 +150,7 @@ object Subset {
 
 
   def isMultidimensional(o: RObject) = o.attr(Attr.DIM) match {
-    case s: Sequential[Any] => s.length > 1
+    case s: Sequential[_] => s.length > 1
     case _ => false
   }
 
@@ -217,9 +233,16 @@ object Subset {
 
   def main(args: Array[String]) = {
     val ri = RInt(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
-    ri.`attr<-`("dim", RInt(2, 5, 2))
-    val in: List[RObject] = List(RInt(1), RInt(-3), RInt(1))
-    println(`[`(ri, in))
+    val env = Environment.emptyEnv
+    val name = "x"
+    env += (name, ri)
+
+//    ri.`attr<-`("dim", RInt(2, 5, 2))
+//    val in: List[RObject] = List(RInt(1), RInt(-3), RInt(1))
+//    println(`[`(ri, in))
+    val subIn = RInt(1,5,10,2)
+    val newValue = RInt(100, 1000, 1, 1)
+    println(`[<-`(Var(name), List(subIn), env, newValue))
   }
 
   def printArray[B](a: Array[B]) {

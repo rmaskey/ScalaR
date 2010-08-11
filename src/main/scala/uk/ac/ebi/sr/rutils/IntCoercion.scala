@@ -4,6 +4,7 @@ package rutils
 import model.{Complex}
 import model.RVal.Bool
 import NAs._
+
 /**
  *
  * Date: Jul 13, 2010

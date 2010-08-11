@@ -10,10 +10,9 @@ import model.Environment
  * @author Taalai Djumabaev
  */
 class RExecutor(var env: Environment) {
-
   def parseAndFormat(input: String): (String, String) = {
     val result = new StringBuilder()
-    val tree   = new StringBuilder()
+    val tree = new StringBuilder()
 
     RParser.parseUnwrap(input, RParser.rProgram) match {
       case r: RParser.Failure => {
@@ -43,5 +42,16 @@ class RExecutor(var env: Environment) {
       case er => println("unexpected error " + er)
     }
     return (result.toString, tree.toString)
+  }
+
+  def interpret(input: String): String = RParser.parseUnwrap(input, RParser.rProgram) match {
+    case r: RParser.Failure => r.toString
+    case e: Expression =>
+      try {
+        Interpreter.interpret(e, env)._1.toString
+      } catch {
+        case e: java.lang.RuntimeException => "error: " + e.getMessage()
+      }
+    case er => "unexpected error: " + er
   }
 }

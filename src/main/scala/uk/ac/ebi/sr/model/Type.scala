@@ -27,4 +27,18 @@ object Type extends Enumeration {
   val WEAKREF = Value("weakref")
   val RAW = Value("raw")
   val S4 = Value("s4")
+
+  val TYPE_VALUE =
+    Map(LOGICAL -> 1,
+      INTEGER -> 2,
+      DOUBLE -> 3,
+      COMPLEX -> 4,
+      CHARACTER -> 5)
+
+  def typeValue(t: Value) = {
+    TYPE_VALUE.get(t) match {
+      case Some(x) => x
+      case None => 6
+    }
+  }
 }

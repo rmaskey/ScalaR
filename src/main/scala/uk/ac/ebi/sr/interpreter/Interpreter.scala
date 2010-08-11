@@ -4,7 +4,7 @@ package interpreter
 import model.RVal._
 import functions.Operations._
 import functions._
-import model.{Sequential, RObject, Environment}
+import model._
 
 /**
  *
@@ -29,7 +29,11 @@ class Interpreter(mainEnv: Environment) {
               "attributes" -> Attributes,
               "length" -> Length,
               "as.integer" -> AsInteger,
-              "as.logical" -> AsLogical))
+              "as.logical" -> AsLogical,
+              "as.double" -> AsDouble,
+              "as.character" -> AsCharacter,
+              "c" -> Concat,
+              "typeof" -> TypeOf))
     (evaluator.eval(tree), evaluator.env)
   }
 }
@@ -119,11 +123,16 @@ class Evaluator(val env: Environment) {
     case NULL => NULL
 
     case Index(e, s) => eval(e) match {
-      case seq: Sequential[Any] => `[`(seq, evalIndexArgs(s))(seq.m)
+      case seq: Sequential[_] => `[`(seq, evalIndexArgs(s))(seq.m)
       case o => error(o.`type` + " is not subsettable")
     }
     case DIndex(e, s) => error("unimplemented operation [[ ")//todo
 
+    case ExtractProperty(e, n) => eval(e) match {
+      case l: RList => l.extract(n)
+      case v: RVal[Any] => error("$ operator is invalid for atomic vectors")
+      case o => error("object of type " + o.`type` + " is not subsettable")
+    }
 
     case Add(l, r) => eval(l) match {
       case lhs: RBool => eval(r) match {

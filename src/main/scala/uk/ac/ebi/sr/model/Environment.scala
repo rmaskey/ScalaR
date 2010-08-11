@@ -72,3 +72,8 @@ class Environment(val ids: Map[String, RObject], parent: Option[Environment]) ex
     allCleaned
   }
 }
+
+object Environment {
+
+  def emptyEnv = new Environment(collection.mutable.Map(), None)
+}

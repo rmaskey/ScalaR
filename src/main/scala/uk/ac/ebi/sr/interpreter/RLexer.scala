@@ -43,13 +43,13 @@ class RLexer extends Lexical with RTokens with RegexParsers {
 
   def token: Parser[Token] =
     ( '\012'                    ^^^ NewLineDelimiter
-    //( '\015' ~ '\012'                    ^^^ NewLineDelimiter
+    //( '\015' ~ '\012'                    ^^^ NewLineDelimiter       // todo OS differences
     | hexNum                             ^^ { case hexNum(h) => NumericLit(Integer.parseInt(h, 16) toString) }
     | decimal ^^ { case decimal(null, _, _, _, d2, m2, e2, i2) =>  createNumberToken(d2, m2, e2, i2)
                    case decimal(d1, m1, e1, i1, _, _, _, _) => createNumberToken(d1, m1, e1, i1) }
     | letter ~ ((letter| '_' | digit)*)  ^^ { case first ~ rest => processIdent(first :: rest mkString "") }
-    | '\'' ~> (chrExcept('\'', EofCh)*) <~ '\'' ^^ { case chars => LitIdentifier(chars mkString "") }
-    | '\"' ~> (chrExcept('\"', EofCh)*) <~ '\"' ^^ { case chars => LitIdentifier(chars mkString "") }
+    | string ^^ LitIdentifier
+    | stringD ^^ LitIdentifier
     | '\'' ~> failure("unclosed string literal")
     | '\"' ~> failure("unclosed string literal")
     | '%' ~> (chrExcept(' ', '\n', EofCh, '%')*) <~ '%' ^^ { case chars => UserDefinedOperation(chars mkString "")}
@@ -63,6 +63,18 @@ class RLexer extends Lexical with RTokens with RegexParsers {
   override def whitespaceChar = elem("space char", ch => (ch == ' ' || ch == '\t') && ch != EofCh)
   override def whitespace: Parser[Any] = rep(whitespaceChar | '#' ~ rep(chrExcept(EofCh, '\n', '\r'))) //^^ {case s => println(s);s }
 
+  def string = '\'' ~> rep(charSeq | chrExcept('\'', '\n', EofCh)) <~ '\'' ^^ { _ mkString "" }
+  def stringD = '\"' ~> rep(charSeq | chrExcept('\"', '\n', EofCh)) <~ '\"' ^^ { _ mkString "" }
+  def charSeq: Parser[String] =
+    ('\\' ~ '\"' ^^^ "\""
+    |'\\' ~ '\\' ^^^ "\\"
+    |'\\' ~ '/'  ^^^ "/"
+    |'\\' ~ 'b'  ^^^ "\b"
+    |'\\' ~ 'f'  ^^^ "\f"
+    |'\\' ~ 'n'  ^^^ "\n"
+    |'\\' ~ 'r'  ^^^ "\r"
+    |'\\' ~ 't'  ^^^ "\t")
+  
   //todo reduce duplication
   val decimal = """(\d+)(\.\d*)?([eE][+-]?\d+)?(i)?|(\d*)(\.\d+)([eE][+-]?\d+)?(i)?""" r
   val hexNum  = """0x([a-fA-F0-9]+)""" r

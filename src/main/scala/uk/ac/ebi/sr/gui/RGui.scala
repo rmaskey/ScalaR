@@ -28,7 +28,7 @@ object RGui extends SimpleSwingApplication {
   val inputAreaRowNumber = 5
   val frameLocation = new Point(100, 200)
 
-  var rExecutor = new RExecutor(new Environment(collection.mutable.Map(), None))
+  var rExecutor = new RExecutor(Environment.emptyEnv)
 
   def top = new MainFrame {
     title = "Scala simple RGUI"

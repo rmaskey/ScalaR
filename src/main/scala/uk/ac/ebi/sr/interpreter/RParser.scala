@@ -18,7 +18,7 @@ object RParser extends StdTokenParsers {
   import lexical.{DecimalNum, UserDefinedOperation, LitIdentifier, Identifier,
     ComplexNum, NumericLit, Keyword, NewLineDelimiter, EOF}
 
-  lexical.delimiters ++= List("{", "}", "(", ")", "[", "[[", "]", "]]", ",", "\t", ";", "\n", "\r",
+  lexical.delimiters ++= List("{", "}", "(", ")", "[", "[[", "]", ",", "\t", ";", "\n", "\r",
       "::", "$", "@", "^", "-", "+", ":", ":::", "*", "/", ">", ">=", "<", "%",
       "<=", "==", "!=", "!", "&", "&&", "|", "||", "~", "->", "->>", "=", "<-", "<<-")
 
@@ -37,9 +37,9 @@ object RParser extends StdTokenParsers {
     ( sStructure
     | funDecl
     | term
-    | "break" ^^^ Break
-    | "next" ^^^ Next
-    )  //todo as variable | "Inf" ^^^ Inf)
+    | "break" ^^^ Break  //todo support
+    | "next" ^^^ Next    //todo support
+    ) 
 
   def sStructure: RLangParser[Expression] =
     ( ifStructure ~~ rep(elseIf) ~~ elseStructure ^^
@@ -74,13 +74,11 @@ object RParser extends StdTokenParsers {
     | ".." ~> numericLit ^^ { case n => declGroup.check(n); TwoLDots(n.toInt) }
     )
 
-  //precedence order is essential here
   def term: RLangParser[Expression] = assignL ~~ opt(("<<-" | "<-") ~ term) ^^
       { case assL ~ Some("<<-" ~ ter) => Assign2ToLeft(assL, ter)
         case assL ~ Some("<-" ~ ter)  => AssignToLeft(assL, ter)
         case assL ~ _ => assL }
 
-   //todo *<- functions are searched if term is on the left
   def assignL: RLangParser[Expression] = assignEq ~~ opt("=" ~> assignL) ^^
       { case assE ~ Some(assL) => Assign(assE, assL)
         case assE ~ _ => assE }
@@ -130,7 +128,7 @@ object RParser extends StdTokenParsers {
 
   // None or "empty comma" arguments for "[[ ]]" will cause an error later in the interpreter
   def index:  RLangParser[String ~ List[Expression]] = "[" ~ repsep(indexArg, ",") <~ "]"
-  def dIndex: RLangParser[String ~ List[Expression]] = "[[" ~ repsep(indexArg, ",") <~ "]]"
+  def dIndex: RLangParser[String ~ List[Expression]] = "[[" ~ repsep(indexArg, ",") <~ "]" <~ "]"
   def indexArg = (expression?) ^^ { case Some(x) => IndexArg(x)
                                     case _ => EmptyIndex }
 
@@ -147,6 +145,7 @@ object RParser extends StdTokenParsers {
 
   def apply: RLangParser[Expression] =
     ( boolean
+    | special
     | ident ~~ opt((":::" | "::") ~ name) ^^
         { case i ~ Some(":::" ~ n) => TripleColon(i, n)
           case i ~ Some("::" ~ n) => DoubleColon(i, n)
@@ -161,7 +160,6 @@ object RParser extends StdTokenParsers {
     | decimalNumber ^^ { i => Num(i) }
     | funDecl
     | complexNum ^^ { i => Num(i) }
-    | special
     )
 
   def name: RLangParser[String] = ident | stringLiteral
@@ -207,9 +205,7 @@ object RParser extends StdTokenParsers {
     override def ~> [U](q: => Parser[U]): RLangParser[U] = p ~ q ^^ { case x ~ y => y }
     override def <~ [U](q: => Parser[U]): RLangParser[T] = p ~ q ^^ { case x ~ y => x }
 
-    override def * [U >: T](sep: => Parser[(U, U) => U]) = chainLeft(this, this, sep)
-    def chainLeft[T, U](first: => Parser[T], p: => Parser[U], q: => Parser[(T, U) => T]): Parser[T] =
-      first ~~ rep(q ~ p) ^^ { case x ~ xs => xs.foldLeft(x) {(_, _) match { case (a, f ~ b) => f(a, b) }}}
+    override def * [U >: T](sep: => Parser[(U, U) => U]) = chainLeft(p, p, sep)
 
     override def map[U](f: T => U): RLangParser[U] = RLangParser{ in => this(in) map(f)}
     def RLangParser[T](f: Input => ParseResult[T]): RLangParser[T] =
@@ -220,6 +216,8 @@ object RParser extends StdTokenParsers {
     override def | [U >: T](q: => Parser[U]): RLangParser[U] = append(q)
   }
 
+  def chainLeft[T, U](first: => Parser[T], p: => Parser[U], q: => Parser[(T, U) => T]): Parser[T] =
+    first ~~ rep(q ~ p) ^^ { case x ~ xs => xs.foldLeft(x) {(_, _) match { case (a, f ~ b) => f(a, b) }}}
   def tightRep[T](p: => RLangParser[T]): RLangParser[List[T]] =
     p ~~ rep(p) ^^ { case x ~ xs => x :: xs }
 
