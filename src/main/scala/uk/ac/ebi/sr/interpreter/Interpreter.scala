@@ -124,47 +124,131 @@ class Evaluator(val env: Environment, session: RSession = RSession.currentSessio
 
     case Add(l, r) => eval(l) match {
       case lhs: RBool => eval(r) match {
-        case rhs: RBool => sum(lhs, rhs)
-        case rhs: RInt => sum(lhs, rhs)
-        case rhs: RDouble => sum(lhs, rhs)
+        case rhs: RBool =>    sum(lhs, rhs)
+        case rhs: RInt =>     sum(lhs, rhs)
+        case rhs: RDouble =>  sum(lhs, rhs)
         case rhs: RComplex => sum(lhs, rhs)
         case _ => error("Unsupported operation for '+' ")
       }
       case lhs: RInt => eval(r) match {
-        case rhs: RBool => sum(lhs, rhs)
-        case rhs: RInt => sum(lhs, rhs)
-        case rhs: RDouble => sum(lhs, rhs)
+        case rhs: RBool =>    sum(lhs, rhs)
+        case rhs: RInt =>     sum(lhs, rhs)
+        case rhs: RDouble =>  sum(lhs, rhs)
         case rhs: RComplex => sum(lhs, rhs)
         case _ => error("Unsupported operation for '+' ")
       }
       case lhs: RDouble => eval(r) match {
-        case rhs: RBool => sum(lhs, rhs)
-        case rhs: RInt => sum(lhs, rhs)
-        case rhs: RDouble => sum(lhs, rhs)
+        case rhs: RBool =>    sum(lhs, rhs)
+        case rhs: RInt =>     sum(lhs, rhs)
+        case rhs: RDouble =>  sum(lhs, rhs)
         case rhs: RComplex => sum(lhs, rhs)
         case _ => error("Unsupported operation for '+' ")
       }
       case lhs: RComplex => eval(r) match {
-        case rhs: RBool => sum(lhs, rhs)
-        case rhs: RInt => sum(lhs, rhs)
-        case rhs: RDouble => sum(lhs, rhs)
+        case rhs: RBool =>    sum(lhs, rhs)
+        case rhs: RInt =>     sum(lhs, rhs)
+        case rhs: RDouble =>  sum(lhs, rhs)
         case rhs: RComplex => sum(lhs, rhs)
         case _ => error("Unsupported operation for '+' ")
       }
       case _ => error("Unsupported operation for '+' ")
     }
 
-    case Subtract(l, r) => (eval(l), eval(r)) match {
-      case _ => error("Unsupported operation for '-'")
+    case Subtract(l, r) => eval(l) match {
+      case lhs: RBool => eval(r) match {
+        case rhs: RBool =>    subtract(lhs, rhs)
+        case rhs: RInt =>     subtract(lhs, rhs)
+        case rhs: RDouble =>  subtract(lhs, rhs)
+        case rhs: RComplex => subtract(lhs, rhs)
+        case _ => error("Unsupported operation for '-' ")
+      }
+      case lhs: RInt => eval(r) match {
+        case rhs: RBool =>    subtract(lhs, rhs)
+        case rhs: RInt =>     subtract(lhs, rhs)
+        case rhs: RDouble =>  subtract(lhs, rhs)
+        case rhs: RComplex => subtract(lhs, rhs)
+        case _ => error("Unsupported operation for '-' ")
+      }
+      case lhs: RDouble => eval(r) match {
+        case rhs: RBool =>    subtract(lhs, rhs)
+        case rhs: RInt =>     subtract(lhs, rhs)
+        case rhs: RDouble =>  subtract(lhs, rhs)
+        case rhs: RComplex => subtract(lhs, rhs)
+        case _ => error("Unsupported operation for '-' ")
+      }
+      case lhs: RComplex => eval(r) match {
+        case rhs: RBool =>    subtract(lhs, rhs)
+        case rhs: RInt =>     subtract(lhs, rhs)
+        case rhs: RDouble =>  subtract(lhs, rhs)
+        case rhs: RComplex => subtract(lhs, rhs)
+        case _ => error("Unsupported operation for '-' ")
+      }
+      case _ => error("Unsupported operation for '-' ")
     }
 
-    case Mul(l, r) => (eval(l), eval(r)) match {
-      case _ => error("Unsupported operation for '*'")
+    case Mul(l, r) => eval(l) match {
+      case lhs: RBool => eval(r) match {
+        case rhs: RBool =>    multiply(lhs, rhs)
+        case rhs: RInt =>     multiply(lhs, rhs)
+        case rhs: RDouble =>  multiply(lhs, rhs)
+        case rhs: RComplex => multiply(lhs, rhs)
+        case _ => error("Unsupported operation for '*' ")
+      }
+      case lhs: RInt => eval(r) match {
+        case rhs: RBool =>    multiply(lhs, rhs)
+        case rhs: RInt =>     multiply(lhs, rhs)
+        case rhs: RDouble =>  multiply(lhs, rhs)
+        case rhs: RComplex => multiply(lhs, rhs)
+        case _ => error("Unsupported operation for '*' ")
+      }
+      case lhs: RDouble => eval(r) match {
+        case rhs: RBool =>    multiply(lhs, rhs)
+        case rhs: RInt =>     multiply(lhs, rhs)
+        case rhs: RDouble =>  multiply(lhs, rhs)
+        case rhs: RComplex => multiply(lhs, rhs)
+        case _ => error("Unsupported operation for '*' ")
+      }
+      case lhs: RComplex => eval(r) match {
+        case rhs: RBool =>    multiply(lhs, rhs)
+        case rhs: RInt =>     multiply(lhs, rhs)
+        case rhs: RDouble =>  multiply(lhs, rhs)
+        case rhs: RComplex => multiply(lhs, rhs)
+        case _ => error("Unsupported operation for '*' ")
+      }
+      case _ => error("Unsupported operation for '*' ")
     }
 
-    case Div(l, r) => (eval(l), eval(r)) match {
     //todo division by zero should lead to Inf object
-      case _ => error("Unsupported operation for '/'")
+    case Div(l, r) => eval(l) match {
+      case lhs: RBool => eval(r) match {
+        case rhs: RBool =>    divide(lhs, rhs)
+        case rhs: RInt =>     divide(lhs, rhs)
+        case rhs: RDouble =>  divide(lhs, rhs)
+        case rhs: RComplex => divide(lhs, rhs)
+        case _ => error("Unsupported operation for '/' ")
+      }
+      case lhs: RInt => eval(r) match {
+        case rhs: RBool =>    divide(lhs, rhs)
+        case rhs: RInt =>     divide(lhs, rhs)
+        case rhs: RDouble =>  divide(lhs, rhs)
+        case rhs: RComplex => divide(lhs, rhs)
+        case _ => error("Unsupported operation for '/' ")
+      }
+      case lhs: RDouble => eval(r) match {
+        case rhs: RBool =>    divide(lhs, rhs)
+        case rhs: RInt =>     divide(lhs, rhs)
+        case rhs: RDouble =>  divide(lhs, rhs)
+        case rhs: RComplex => divide(lhs, rhs)
+        case _ => error("Unsupported operation for '/' ")
+      }
+      case lhs: RComplex => eval(r) match {
+        case rhs: RBool =>    divide(lhs, rhs)
+        case rhs: RInt =>     divide(lhs, rhs)
+        case rhs: RDouble =>  divide(lhs, rhs)
+        case rhs: RComplex => divide(lhs, rhs)
+        case _ => error("Unsupported operation for '/' ")
+      }
+      case _ => error("Unsupported operation for '/' ")
     }
 
     case Pow(l, r) => (eval(l), eval(r)) match {
@@ -208,16 +292,100 @@ class Evaluator(val env: Environment, session: RSession = RSession.currentSessio
       case _ => error("Undefined operation " + n)
     }
 
-    case GreaterOrEq(l, r) => (eval(l), eval(r)) match {
-      case _ => error("Unsupported operation for '>='")
+    case GreaterOrEq(l, r) => eval(l) match {
+      case lhs: RBool => eval(r) match {
+        case rhs: RBool => gteq(lhs, rhs)
+        case rhs: RInt => gteq(lhs, rhs)
+        case rhs: RDouble => gteq(lhs, rhs)
+        case rhs: RChar => gteq(lhs, rhs)
+        case _ => error("Unsupported operation for '>=' ")
+      }
+      case lhs: RInt => eval(r) match {
+        case rhs: RBool => gteq(lhs, rhs)
+        case rhs: RInt => gteq(lhs, rhs)
+        case rhs: RDouble => gteq(lhs, rhs)
+        case rhs: RChar => gteq(lhs, rhs)
+        case _ => error("Unsupported operation for '>=' ")
+      }
+      case lhs: RDouble => eval(r) match {
+        case rhs: RBool => gteq(lhs, rhs)
+        case rhs: RInt => gteq(lhs, rhs)
+        case rhs: RDouble => gteq(lhs, rhs)
+        case rhs: RChar => gteq(lhs, rhs)
+        case _ => error("Unsupported operation for '>=' ")
+      }
+      case lhs: RChar => eval(r) match {
+        case rhs: RBool => gteq(lhs, rhs)
+        case rhs: RInt => gteq(lhs, rhs)
+        case rhs: RDouble => gteq(lhs, rhs)
+        case rhs: RChar => gteq(lhs, rhs)
+        case _ => error("Unsupported operation for '>=' ")
+      }
+      case _ => error("Unsupported operation for '>=' ")
     }
 
-    case Greater(l, r) => (eval(l), eval(r)) match {
-      case _ => error("Unsupported operation for '>'")
+    case Greater(l, r) => eval(l) match {
+      case lhs: RBool => eval(r) match {
+        case rhs: RBool => gt(lhs, rhs)
+        case rhs: RInt => gt(lhs, rhs)
+        case rhs: RDouble => gt(lhs, rhs)
+        case rhs: RChar => gt(lhs, rhs)
+        case _ => error("Unsupported operation for '>' ")
+      }
+      case lhs: RInt => eval(r) match {
+        case rhs: RBool => gt(lhs, rhs)
+        case rhs: RInt => gt(lhs, rhs)
+        case rhs: RDouble => gt(lhs, rhs)
+        case rhs: RChar => gt(lhs, rhs)
+        case _ => error("Unsupported operation for '>' ")
+      }
+      case lhs: RDouble => eval(r) match {
+        case rhs: RBool => gt(lhs, rhs)
+        case rhs: RInt => gt(lhs, rhs)
+        case rhs: RDouble => gt(lhs, rhs)
+        case rhs: RChar => gt(lhs, rhs)
+        case _ => error("Unsupported operation for '>' ")
+      }
+      case lhs: RChar => eval(r) match {
+        case rhs: RBool => gt(lhs, rhs)
+        case rhs: RInt => gt(lhs, rhs)
+        case rhs: RDouble => gt(lhs, rhs)
+        case rhs: RChar => gt(lhs, rhs)
+        case _ => error("Unsupported operation for '>' ")
+      }
+      case _ => error("Unsupported operation for '>' ")
     }
 
-    case LessOrEq(l, r) => (eval(l), eval(r)) match {
-      case _ => error("Unsupported operation for '<='")
+    case LessOrEq(l, r) => eval(l) match {
+      case lhs: RBool => eval(r) match {
+        case rhs: RBool => lteq(lhs, rhs)
+        case rhs: RInt => lteq(lhs, rhs)
+        case rhs: RDouble => lteq(lhs, rhs)
+        case rhs: RChar => lteq(lhs, rhs)
+        case _ => error("Unsupported operation for '<=' ")
+      }
+      case lhs: RInt => eval(r) match {
+        case rhs: RBool => lteq(lhs, rhs)
+        case rhs: RInt => lteq(lhs, rhs)
+        case rhs: RDouble => lteq(lhs, rhs)
+        case rhs: RChar => lteq(lhs, rhs)
+        case _ => error("Unsupported operation for '<=' ")
+      }
+      case lhs: RDouble => eval(r) match {
+        case rhs: RBool => lteq(lhs, rhs)
+        case rhs: RInt => lteq(lhs, rhs)
+        case rhs: RDouble => lteq(lhs, rhs)
+        case rhs: RChar => lteq(lhs, rhs)
+        case _ => error("Unsupported operation for '<=' ")
+      }
+      case lhs: RChar => eval(r) match {
+        case rhs: RBool => lteq(lhs, rhs)
+        case rhs: RInt => lteq(lhs, rhs)
+        case rhs: RDouble => lteq(lhs, rhs)
+        case rhs: RChar => lteq(lhs, rhs)
+        case _ => error("Unsupported operation for '<=' ")
+      }
+      case _ => error("Unsupported operation for '<=' ")
     }
 
     case Less(l, r) => eval(l) match {
@@ -252,8 +420,70 @@ class Evaluator(val env: Environment, session: RSession = RSession.currentSessio
       case _ => error("Unsupported operation for '<' ")
     }
 
-    case Eq(l, r) => error("Unsupported operation '=' ")
-    case NotEq(l, r) => error("Unsupported operation '!=' ")
+    case Eq(l, r) => eval(l) match {
+      case lhs: RBool => eval(r) match {
+        case rhs: RBool => eql(lhs, rhs)
+        case rhs: RInt => eql(lhs, rhs)
+        case rhs: RDouble => eql(lhs, rhs)
+        case rhs: RChar => eql(lhs, rhs)
+        case _ => error("Unsupported operation for '==' ")
+      }
+      case lhs: RInt => eval(r) match {
+        case rhs: RBool => eql(lhs, rhs)
+        case rhs: RInt => eql(lhs, rhs)
+        case rhs: RDouble => eql(lhs, rhs)
+        case rhs: RChar => eql(lhs, rhs)
+        case _ => error("Unsupported operation for '==' ")
+      }
+      case lhs: RDouble => eval(r) match {
+        case rhs: RBool => eql(lhs, rhs)
+        case rhs: RInt => eql(lhs, rhs)
+        case rhs: RDouble => eql(lhs, rhs)
+        case rhs: RChar => eql(lhs, rhs)
+        case _ => error("Unsupported operation for '==' ")
+      }
+      case lhs: RChar => eval(r) match {
+        case rhs: RBool => eql(lhs, rhs)
+        case rhs: RInt => eql(lhs, rhs)
+        case rhs: RDouble => eql(lhs, rhs)
+        case rhs: RChar => eql(lhs, rhs)
+        case _ => error("Unsupported operation for '==' ")
+      }
+      case _ => error("Unsupported operation for '==' ")
+    }
+
+    case NotEq(l, r) => eval(l) match {
+      case lhs: RBool => eval(r) match {
+        case rhs: RBool => neq(lhs, rhs)
+        case rhs: RInt => neq(lhs, rhs)
+        case rhs: RDouble => neq(lhs, rhs)
+        case rhs: RChar => neq(lhs, rhs)
+        case _ => error("Unsupported operation for '!=' ")
+      }
+      case lhs: RInt => eval(r) match {
+        case rhs: RBool => neq(lhs, rhs)
+        case rhs: RInt => neq(lhs, rhs)
+        case rhs: RDouble => neq(lhs, rhs)
+        case rhs: RChar => neq(lhs, rhs)
+        case _ => error("Unsupported operation for '!=' ")
+      }
+      case lhs: RDouble => eval(r) match {
+        case rhs: RBool => neq(lhs, rhs)
+        case rhs: RInt => neq(lhs, rhs)
+        case rhs: RDouble => neq(lhs, rhs)
+        case rhs: RChar => neq(lhs, rhs)
+        case _ => error("Unsupported operation for '!=' ")
+      }
+      case lhs: RChar => eval(r) match {
+        case rhs: RBool => neq(lhs, rhs)
+        case rhs: RInt => neq(lhs, rhs)
+        case rhs: RDouble => neq(lhs, rhs)
+        case rhs: RChar => neq(lhs, rhs)
+        case _ => error("Unsupported operation for '!=' ")
+      }
+      case _ => error("Unsupported operation for '!=' ")
+    }
+
 
     case And(l, r) => (eval(l), eval(r)) match {
       case _ => error("Unsupported operation for '&&'")

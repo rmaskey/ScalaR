@@ -135,6 +135,45 @@ object Operations {
   def sum(l: RComplex, r: RDouble): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Complex, s: Double) => f + double2Complex(s), RComplex.NA)))
   def sum(l: RComplex, r: RComplex): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Complex, s: Complex) => f + s, RComplex.NA)))
 
+  def subtract(l: RInt, r: RInt): RInt = dim(l, r, RInt(modeIterate(l, r, (f: Int, s: Int) => f - s, RInt.NA)))
+  def subtract(l: RInt, r: RDouble): RDouble = dim(l, r, RDouble(modeIterate(l, r, (f: Int, s: Double) => f.toDouble - s, RDouble.NA)))
+  def subtract(l: RInt, r: RComplex): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Int, s: Complex) => int2Complex(f) - s, RComplex.NA)))
+
+  def subtract(l: RDouble, r: RInt): RDouble = dim(l, r, RDouble(modeIterate(l, r, (f: Double, s: Int) => f - s.toDouble, RDouble.NA)))
+  def subtract(l: RDouble, r: RDouble): RDouble = dim(l, r, RDouble(modeIterate(l, r, (f: Double, s: Double) => f - s, RDouble.NA)))
+  def subtract(l: RDouble, r: RComplex): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Double, s: Complex) => double2Complex(f) - s, RComplex.NA)))
+
+  def subtract(l: RComplex, r: RInt): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Complex, s: Int) => f - int2Complex(s), RComplex.NA)))
+  def subtract(l: RComplex, r: RDouble): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Complex, s: Double) => f - double2Complex(s), RComplex.NA)))
+  def subtract(l: RComplex, r: RComplex): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Complex, s: Complex) => f - s, RComplex.NA)))
+
+  def multiply(l: RInt, r: RInt): RInt = dim(l, r, RInt(modeIterate(l, r, (f: Int, s: Int) => f * s, RInt.NA)))
+  def multiply(l: RInt, r: RDouble): RDouble = dim(l, r, RDouble(modeIterate(l, r, (f: Int, s: Double) => f.toDouble * s, RDouble.NA)))
+  def multiply(l: RInt, r: RComplex): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Int, s: Complex) => int2Complex(f) * s, RComplex.NA)))
+
+  def multiply(l: RDouble, r: RInt): RDouble = dim(l, r, RDouble(modeIterate(l, r, (f: Double, s: Int) => f * s.toDouble, RDouble.NA)))
+  def multiply(l: RDouble, r: RDouble): RDouble = dim(l, r, RDouble(modeIterate(l, r, (f: Double, s: Double) => f * s, RDouble.NA)))
+  def multiply(l: RDouble, r: RComplex): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Double, s: Complex) => double2Complex(f) * s, RComplex.NA)))
+
+  def multiply(l: RComplex, r: RInt): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Complex, s: Int) => f * int2Complex(s), RComplex.NA)))
+  def multiply(l: RComplex, r: RDouble): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Complex, s: Double) => f * double2Complex(s), RComplex.NA)))
+  def multiply(l: RComplex, r: RComplex): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Complex, s: Complex) => f * s, RComplex.NA)))
+
+  //todo div  - div by integers should produce doubles
+  def divide(l: RInt, r: RInt): RInt = dim(l, r, RInt(modeIterate(l, r, (f: Int, s: Int) => f / s, RInt.NA)))
+  def divide(l: RInt, r: RDouble): RDouble = dim(l, r, RDouble(modeIterate(l, r, (f: Int, s: Double) => f.toDouble / s, RDouble.NA)))
+  def divide(l: RInt, r: RComplex): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Int, s: Complex) => int2Complex(f) / s, RComplex.NA)))
+
+  def divide(l: RDouble, r: RInt): RDouble = dim(l, r, RDouble(modeIterate(l, r, (f: Double, s: Int) => f / s.toDouble, RDouble.NA)))
+  def divide(l: RDouble, r: RDouble): RDouble = dim(l, r, RDouble(modeIterate(l, r, (f: Double, s: Double) => f / s, RDouble.NA)))
+  def divide(l: RDouble, r: RComplex): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Double, s: Complex) => double2Complex(f) / s, RComplex.NA)))
+
+  def divide(l: RComplex, r: RInt): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Complex, s: Int) => f / int2Complex(s), RComplex.NA)))
+  def divide(l: RComplex, r: RDouble): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Complex, s: Double) => f / double2Complex(s), RComplex.NA)))
+  def divide(l: RComplex, r: RComplex): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Complex, s: Complex) => f / s, RComplex.NA)))
+
+
+
 
   def lt(l: RInt, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Int) => boolean2Int(f < s), RBool.NA)))
   def lt(l: RInt, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Double) => boolean2Int(f.toDouble < s), RBool.NA)))
@@ -147,6 +186,67 @@ object Operations {
   def lt(l: RChar, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: Int) => boolean2Int(f < s.toString), RBool.NA)))
   def lt(l: RChar, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: Double) => boolean2Int(f < s.toString), RBool.NA)))
   def lt(l: RChar, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: String) => boolean2Int(f < s), RBool.NA)))
+
+  def lteq(l: RInt, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Int) => boolean2Int(f <= s), RBool.NA)))
+  def lteq(l: RInt, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Double) => boolean2Int(f.toDouble <= s), RBool.NA)))
+  def lteq(l: RInt, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: String) => boolean2Int(f.toString <= s), RBool.NA)))
+
+  def lteq(l: RDouble, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Int) => boolean2Int(f.toDouble <= s), RBool.NA)))
+  def lteq(l: RDouble, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Double) => boolean2Int(f <= s), RBool.NA)))
+  def lteq(l: RDouble, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: String) => boolean2Int(f.toString <= s), RBool.NA)))
+
+  def lteq(l: RChar, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: Int) => boolean2Int(f <= s.toString), RBool.NA)))
+  def lteq(l: RChar, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: Double) => boolean2Int(f <= s.toString), RBool.NA)))
+  def lteq(l: RChar, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: String) => boolean2Int(f <= s), RBool.NA)))
+
+  def gt(l: RInt, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Int) => boolean2Int(f > s), RBool.NA)))
+  def gt(l: RInt, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Double) => boolean2Int(f.toDouble > s), RBool.NA)))
+  def gt(l: RInt, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: String) => boolean2Int(f.toString > s), RBool.NA)))
+
+  def gt(l: RDouble, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Int) => boolean2Int(f.toDouble > s), RBool.NA)))
+  def gt(l: RDouble, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Double) => boolean2Int(f > s), RBool.NA)))
+  def gt(l: RDouble, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: String) => boolean2Int(f.toString > s), RBool.NA)))
+
+  def gt(l: RChar, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: Int) => boolean2Int(f > s.toString), RBool.NA)))
+  def gt(l: RChar, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: Double) => boolean2Int(f > s.toString), RBool.NA)))
+  def gt(l: RChar, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: String) => boolean2Int(f > s), RBool.NA)))
+
+  def gteq(l: RInt, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Int) => boolean2Int(f >= s), RBool.NA)))
+  def gteq(l: RInt, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Double) => boolean2Int(f.toDouble >= s), RBool.NA)))
+  def gteq(l: RInt, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: String) => boolean2Int(f.toString >= s), RBool.NA)))
+
+  def gteq(l: RDouble, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Int) => boolean2Int(f.toDouble >= s), RBool.NA)))
+  def gteq(l: RDouble, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Double) => boolean2Int(f >= s), RBool.NA)))
+  def gteq(l: RDouble, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: String) => boolean2Int(f.toString >= s), RBool.NA)))
+
+  def gteq(l: RChar, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: Int) => boolean2Int(f >= s.toString), RBool.NA)))
+  def gteq(l: RChar, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: Double) => boolean2Int(f >= s.toString), RBool.NA)))
+  def gteq(l: RChar, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: String) => boolean2Int(f >= s), RBool.NA)))
+
+  //todo equality of double and int can result in true in R, but false in Java
+  def eql(l: RInt, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Int) => boolean2Int(f == s), RBool.NA)))
+  def eql(l: RInt, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Double) => boolean2Int(f.toDouble == s), RBool.NA)))
+  def eql(l: RInt, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: String) => boolean2Int(f.toString == s), RBool.NA)))
+
+  def eql(l: RDouble, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Int) => boolean2Int(f.toDouble == s), RBool.NA)))
+  def eql(l: RDouble, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Double) => boolean2Int(f == s), RBool.NA)))
+  def eql(l: RDouble, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: String) => boolean2Int(f.toString == s), RBool.NA)))
+
+  def eql(l: RChar, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: Int) => boolean2Int(f == s.toString), RBool.NA)))
+  def eql(l: RChar, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: Double) => boolean2Int(f == s.toString), RBool.NA)))
+  def eql(l: RChar, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: String) => boolean2Int(f == s), RBool.NA)))
+
+  def neq(l: RInt, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Int) => boolean2Int(f != s), RBool.NA)))
+  def neq(l: RInt, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Double) => boolean2Int(f.toDouble != s), RBool.NA)))
+  def neq(l: RInt, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: String) => boolean2Int(f.toString != s), RBool.NA)))
+
+  def neq(l: RDouble, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Int) => boolean2Int(f.toDouble != s), RBool.NA)))
+  def neq(l: RDouble, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Double) => boolean2Int(f != s), RBool.NA)))
+  def neq(l: RDouble, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: String) => boolean2Int(f.toString != s), RBool.NA)))
+
+  def neq(l: RChar, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: Int) => boolean2Int(f != s.toString), RBool.NA)))
+  def neq(l: RChar, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: Double) => boolean2Int(f != s.toString), RBool.NA)))
+  def neq(l: RChar, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: String) => boolean2Int(f != s), RBool.NA)))
 
 
   def seq(l: RInt, r: RInt): RInt = RInt(genSequence(l, r))
