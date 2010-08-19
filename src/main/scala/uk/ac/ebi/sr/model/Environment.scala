@@ -9,18 +9,24 @@ import interpreter.{Evaluator, Expression}
  * Date: 30.05.2010
  * @author Taalai Djumabaev
  */
-class Environment(val ids: Map[String, RObject], parent: Option[Environment]) extends RObject {
+class Environment(val ids: Map[String, RObject] = Map[String, RObject](), val parent: Option[Environment] = None) extends RObject {
   parent match {
     case Some(x: Environment) => x.children += this
     case None => // do nothing
   }
   lazy val children = collection.mutable.ListBuffer[Environment]()
+  lazy val packageExports = Map[String, Map[String, RObject]]()
+
+  def addPackage(name: String, exported: Map[String, RObject]) = {
+    //todo to check names of variables (ome can be already present. warning is needed)
+    packageExports += name -> exported
+  }
 
   val `type` = Type.ENVIRONMENT
   var isBound = false
 
-  def ++= (l: List[(String, RObject)]) = {
-    for ((k, v) <- l) this += (k, v)
+  def ++= (m: Map[String, RObject]) = {
+    for ((k, v) <- m) this += (k, v)
     this
   }
 
@@ -34,16 +40,19 @@ class Environment(val ids: Map[String, RObject], parent: Option[Environment]) ex
     this
   }
 
+  //todo do we need to add exported variables for search? can we modify them?
   def resolveLocal(id: String): Option[RObject] = if (ids contains id) ids get id else None
 
   def resolve(id: String): Option[RObject] = {
-    if (ids contains id) ids get id
-    else parent match {
+    if (ids contains id) return ids get id
+    packageExports.foreach((p : (String, Map[String, RObject])) => if (p._2 contains id) return p._2.get(id))
+    parent match {
         case Some(c) => c.resolve(id)
         case None => None
     }
   }
 
+  //todo do we need to add exported variables for search? can we modify them?
   def resolveWithEnv(id: String): Option[(RObject, Environment)] = {
     if (ids contains id) Some((ids(id), this))
     else parent match {
@@ -69,11 +78,14 @@ class Environment(val ids: Map[String, RObject], parent: Option[Environment]) ex
       ids.foreach(_._2.removeReferencer)
       ids.clear
     }
+    packageExports.foreach(_._2.clear)
     allCleaned
   }
 }
 
 object Environment {
 
-  def emptyEnv = new Environment(collection.mutable.Map(), None)
+  def emptyEnv = new Environment()
+
+  def childEnv(parent: Environment) = new Environment(parent = Some(parent))
 }

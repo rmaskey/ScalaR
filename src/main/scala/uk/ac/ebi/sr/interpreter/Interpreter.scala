@@ -13,7 +13,7 @@ import model._
  */
 object Interpreter {
   def interpret(tree: Expression): (Any, Environment) = {
-    interpret(tree, new Environment(collection.mutable.Map(), None))
+    interpret(tree, Environment.emptyEnv)
   }
 
   def interpret(tree: Expression, env: Environment): (Any, Environment) = {
@@ -23,22 +23,12 @@ object Interpreter {
 
 class Interpreter(mainEnv: Environment) {
   def interpret(tree: Expression): (Any, Environment) = {
-    val evaluator = new Evaluator(mainEnv ++=
-            List(
-              "attr" -> Attr,
-              "attributes" -> Attributes,
-              "length" -> Length,
-              "as.integer" -> AsInteger,
-              "as.logical" -> AsLogical,
-              "as.double" -> AsDouble,
-              "as.character" -> AsCharacter,
-              "c" -> Concat,
-              "typeof" -> TypeOf))
+    val evaluator = new Evaluator(mainEnv)
     (evaluator.eval(tree), evaluator.env)
   }
 }
   //class for evaluating with the environment
-class Evaluator(val env: Environment) {
+class Evaluator(val env: Environment, session: RSession = RSession.currentSession) { //todo should be changed so that not only one session is allowed
   import functions.AsLogical._
   import functions.Subset._
 
@@ -106,8 +96,6 @@ class Evaluator(val env: Environment) {
         }
       }
     }
-
-    // case CallArg(exp) => eval(exp) since for now all functions behave like closures
 
     case Var(id) => env.resolve(id) match {
       case Some(x: Expression) => eval(x)
@@ -392,7 +380,11 @@ class Evaluator(val env: Environment) {
       v
     }
 
-    case UnPlus(e) => eval(e)
+    case UnPlus(e) => eval(e) match {
+      case r: RVal[_] => r
+      case o => error("invalid argument to unary operator")
+    }
+    
     case UnMinus(e) => eval(e) match {
       case _ => error("Unsupported operation for unary '-'")
     }
@@ -404,11 +396,25 @@ class Evaluator(val env: Environment) {
     //   case UnTilde(e) =>
 
     //todo
-    //   case Next()  =>
-    //   case Break() =>
-    //   case Inf() =>
+    //   case Next  =>
+    //   case Break =>
+    //   case Inf =>
 
-
+    //todo maybe should check for Nones and call error("... undefined ...")
+    case DoubleColon(l, r) => session.loadedLibraries.get(l) match {
+      case Some(x) => x.exported.get(r) match {
+        case Some(y) => y
+        case None => error("undefined var " + r + " in library " + l)
+      }
+      case None => error("undefined library: " + l)
+    }
+    case TripleColon(l, r) => session.loadedLibraries.get(l) match {
+      case Some(x) => x.env.resolve(r) match {
+        case Some(y) => y
+        case None => error("undefined var " + r + " in library " + l)
+      }
+      case None => error("undefined library: " + l)
+    }
     case a => error("unsupported expression got. " + a)
   }
 

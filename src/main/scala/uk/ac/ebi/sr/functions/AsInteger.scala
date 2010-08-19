@@ -23,6 +23,7 @@ case object AsLogical extends Builtin {
     }
   }
 
+  //TODO coercions should be made properly. No attribute copying is done for now
   def `as.logical`(x: RObject): RBool = x match {
     case b: RBool => b
     case i: RInt => RBool(i.s) // unless we change the bool type

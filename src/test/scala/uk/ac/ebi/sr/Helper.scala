@@ -13,7 +13,7 @@ object Helper {
 
   def evaluate(input: String): Any = {
     RParser.parseUnwrap(input) match {
-      case e: Expression => Interpreter.interpret(e)._1
+      case e: Expression => Interpreter.interpret(e, baseEnv)._1
       case _ => None
     }
   }
@@ -25,4 +25,6 @@ object Helper {
     for ((i, j) <- a.s.zip(b.s)) if (i != j) return false
     a.attributes == b.attributes
   }
+
+  val baseEnv = RSession.baseEnv
 }

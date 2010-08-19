@@ -40,7 +40,7 @@ trait Assignable extends ArgMatching {
 abstract class Builtin extends RObject with ArgMatching with RFunction {
   import scala.collection.mutable.Map
   //todo should it be global environment. do we actually need this default one?
-  lazy val defaultEvaluator = new Evaluator(new Environment(Map(), None))
+  lazy val defaultEvaluator = new Evaluator(Environment.emptyEnv)
 
   lazy val `type` = Type.BUILTIN
 

@@ -74,7 +74,8 @@ trait ArgMatching {
       env += ("...", LDotList(b))
       a
     }
-    if (unTaggedForProcess.size > f.size) error(unTaggedForProcess +  " unused parameters present " + f) //todo toString method in Args
+    if (unTaggedForProcess.size > f.size) error(" unused parameters present ")
+//    if (unTaggedForProcess.size > f.size) error(unTaggedForProcess +  " unused parameters present " + f) //todo toString method in Args
     (unTaggedForProcess zip f) foreach (arg => arg match {
       case (a: CallArg, h) => env += (h.name, new Evaluator(fEnv) eval a.e)
       case (a, h: DeclArgDef) if (a == NoneArg) => env += (h.name, defaultEvaluator eval h.default)
@@ -94,7 +95,7 @@ trait ArgMatching {
   import scala.collection.mutable.Map
 
   def evalArgs(args: List[FCallArg], fEnv: Environment, enclosing: Environment) = {
-    val env = new Environment(Map[String, RObject](), Some(enclosing))
+    val env = Environment.childEnv(enclosing)
     val tagged = args filter (_.isInstanceOf[CallArgDef])
     val (declArgs, remaining) = if (tagged.size > 0)
       matchTags(tagged.asInstanceOf[List[CallArgDef]], params, fEnv, env) else (params, List())

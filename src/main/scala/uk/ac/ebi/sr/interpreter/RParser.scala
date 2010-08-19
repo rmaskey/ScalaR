@@ -252,6 +252,16 @@ object RParser extends StdTokenParsers {
       }
     }
   }
+
+  def parseUnwrapFromFile(fileName: String) = {
+    val input = new PagedSeqReader(PagedSeq.fromFile(fileName))
+    val tokens = new lexical.Scanner(input)
+    val result = phrase(rProgram)(tokens)
+    result match {
+      case Success(tree, _) => tree
+      case e: NoSuccess => error(e.msg)
+    }
+  }
 }
 
 

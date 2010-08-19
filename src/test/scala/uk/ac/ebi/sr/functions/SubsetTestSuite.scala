@@ -140,6 +140,10 @@ class SubsetTestSuite extends FunSuite {
           attr(x, "dim") <- 4:5
           x[, 4:3]
       """
-    assert(equalSeq(evaluate(input).asInstanceOf[RInt], RInt(13, 14, 15, 16, 9, 10, 11, 12)))
+    try {
+      assert(equalSeq(evaluate(input).asInstanceOf[RInt], RInt(13, 14, 15, 16, 9, 10, 11, 12)))
+    } catch {
+      case e: Exception => e.printStackTrace
+    }
   }
 }
