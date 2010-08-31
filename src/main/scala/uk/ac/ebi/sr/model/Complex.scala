@@ -15,6 +15,11 @@ class Complex(val r: Double, val i: Double = 0.) {
 
   def unary_- = new Complex(-r, -i)
 
+  def != (that: Complex) = i != that.i || r != that.r
+  def != (that: Double)  = i != .0 || r != that  
+  def == (that: Complex) = i == that.i && r == that.r
+  def == (that: Double)  = i == .0 && r == that
+
   override def toString = "" + r + (if (i >= 0) "+" + i else i)  + "i"
   def isZero = r == 0 && i == 0
 }

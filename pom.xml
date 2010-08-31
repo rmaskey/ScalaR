@@ -115,7 +115,7 @@
                     <launchers>
                         <launcher>
                             <id>main</id>
-                            <mainClass>MainJ</mainClass>
+                            <mainClass>uk.ac.ebi.rcloud.MainJ</mainClass>
                         </launcher>
                     </launchers>
                 </configuration>

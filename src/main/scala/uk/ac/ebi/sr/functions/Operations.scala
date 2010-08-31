@@ -159,8 +159,7 @@ object Operations {
   def multiply(l: RComplex, r: RDouble): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Complex, s: Double) => f * double2Complex(s), RComplex.NA)))
   def multiply(l: RComplex, r: RComplex): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Complex, s: Complex) => f * s, RComplex.NA)))
 
-  //todo div  - div by integers should produce doubles
-  def divide(l: RInt, r: RInt): RInt = dim(l, r, RInt(modeIterate(l, r, (f: Int, s: Int) => f / s, RInt.NA)))
+  def divide(l: RInt, r: RInt): RDouble = dim(l, r, RDouble(modeIterate(l, r, (f: Int, s: Int) => (f / s.toDouble), RDouble.NA)))
   def divide(l: RInt, r: RDouble): RDouble = dim(l, r, RDouble(modeIterate(l, r, (f: Int, s: Double) => f.toDouble / s, RDouble.NA)))
   def divide(l: RInt, r: RComplex): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Int, s: Complex) => int2Complex(f) / s, RComplex.NA)))
 
@@ -172,7 +171,17 @@ object Operations {
   def divide(l: RComplex, r: RDouble): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Complex, s: Double) => f / double2Complex(s), RComplex.NA)))
   def divide(l: RComplex, r: RComplex): RComplex = dim(l, r, RComplex(modeIterate(l, r, (f: Complex, s: Complex) => f / s, RComplex.NA)))
 
+  def pow(l: RInt, r: RInt): RDouble = dim(l, r, RDouble(modeIterate(l, r, (f: Int, s: Int) => java.lang.Math.pow(f, s), RDouble.NA)))
+  def pow(l: RInt, r: RDouble): RDouble = dim(l, r, RDouble(modeIterate(l, r, (f: Int, s: Double) => java.lang.Math.pow(f, s), RDouble.NA)))
+  def pow(l: RInt, r: RComplex): RComplex = error("unimplemented operation with complex numbers")
 
+  def pow(l: RDouble, r: RInt): RDouble = dim(l, r, RDouble(modeIterate(l, r, (f: Double, s: Int) => java.lang.Math.pow(f, s), RDouble.NA)))
+  def pow(l: RDouble, r: RDouble): RDouble = dim(l, r, RDouble(modeIterate(l, r, (f: Double, s: Double) => java.lang.Math.pow(f, s), RDouble.NA)))
+  def pow(l: RDouble, r: RComplex): RComplex = error("unimplemented operation with complex numbers")
+
+  def pow(l: RComplex, r: RInt): RComplex = error("unimplemented operation with complex numbers")
+  def pow(l: RComplex, r: RDouble): RComplex = error("unimplemented operation with complex numbers")
+  def pow(l: RComplex, r: RComplex): RComplex = error("unimplemented operation with complex numbers")
 
 
   def lt(l: RInt, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Int) => boolean2Int(f < s), RBool.NA)))
@@ -247,6 +256,31 @@ object Operations {
   def neq(l: RChar, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: Int) => boolean2Int(f != s.toString), RBool.NA)))
   def neq(l: RChar, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: Double) => boolean2Int(f != s.toString), RBool.NA)))
   def neq(l: RChar, r: RChar): RBool = dim(l, r, RBool(modeIterate(l, r, (f: String, s: String) => boolean2Int(f != s), RBool.NA)))
+
+
+  def andVec(l: RInt, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Int) => boolean2Int(f != 0 && s != 0), RBool.NA)))
+  def andVec(l: RInt, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Double) => boolean2Int(f != 0 && s != .0), RBool.NA)))
+  def andVec(l: RInt, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Complex) => boolean2Int(f != 0 && s != 0), RBool.NA)))
+
+  def andVec(l: RDouble, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Int) => boolean2Int(f != .0 && s != 0), RBool.NA)))
+  def andVec(l: RDouble, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Double) => boolean2Int(f != .0 && s != .0), RBool.NA)))
+  def andVec(l: RDouble, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Complex) => boolean2Int(f != .0 && s != 0), RBool.NA)))
+
+  def andVec(l: RComplex, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Int) => boolean2Int(f != 0 && s != 0), RBool.NA)))
+  def andVec(l: RComplex, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Double) => boolean2Int(f != 0 && s != .0), RBool.NA)))
+  def andVec(l: RComplex, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Complex) => boolean2Int(f != 0 && s != 0), RBool.NA)))
+
+  def orVec(l: RInt, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Int) => boolean2Int(f != 0 || s != 0), RBool.NA)))
+  def orVec(l: RInt, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Double) => boolean2Int(f != 0 || s != .0), RBool.NA)))
+  def orVec(l: RInt, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Complex) => boolean2Int(f != 0 || s != 0), RBool.NA)))
+
+  def orVec(l: RDouble, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Int) => boolean2Int(f != .0 || s != 0), RBool.NA)))
+  def orVec(l: RDouble, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Double) => boolean2Int(f != .0 || s != .0), RBool.NA)))
+  def orVec(l: RDouble, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Complex) => boolean2Int(f != .0 || s != 0), RBool.NA)))
+
+  def orVec(l: RComplex, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Int) => boolean2Int(f != 0 || s != 0), RBool.NA)))
+  def orVec(l: RComplex, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Double) => boolean2Int(f != 0 || s != .0), RBool.NA)))
+  def orVec(l: RComplex, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Complex) => boolean2Int(f != 0 || s != 0), RBool.NA)))
 
 
   def seq(l: RInt, r: RInt): RInt = RInt(genSequence(l, r))

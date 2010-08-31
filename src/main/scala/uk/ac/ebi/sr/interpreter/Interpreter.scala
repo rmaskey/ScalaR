@@ -251,9 +251,38 @@ class Evaluator(val env: Environment, session: RSession = RSession.currentSessio
       case _ => error("Unsupported operation for '/' ")
     }
 
-    case Pow(l, r) => (eval(l), eval(r)) match {
-      case _ => error("Unsupported operation for '^'")
+    case Pow(l, r) => eval(l) match {
+      case lhs: RBool => eval(r) match {
+        case rhs: RBool =>    pow(lhs, rhs)
+        case rhs: RInt =>     pow(lhs, rhs)
+        case rhs: RDouble =>  pow(lhs, rhs)
+        case rhs: RComplex => pow(lhs, rhs)
+        case _ => error("Unsupported operation for '^' ")
+      }
+      case lhs: RInt => eval(r) match {
+        case rhs: RBool =>    pow(lhs, rhs)
+        case rhs: RInt =>     pow(lhs, rhs)
+        case rhs: RDouble =>  pow(lhs, rhs)
+        case rhs: RComplex => pow(lhs, rhs)
+        case _ => error("Unsupported operation for '^' ")
+      }
+      case lhs: RDouble => eval(r) match {
+        case rhs: RBool =>    pow(lhs, rhs)
+        case rhs: RInt =>     pow(lhs, rhs)
+        case rhs: RDouble =>  pow(lhs, rhs)
+        case rhs: RComplex => pow(lhs, rhs)
+        case _ => error("Unsupported operation for '^' ")
+      }
+      case lhs: RComplex => eval(r) match {
+        case rhs: RBool =>    pow(lhs, rhs)
+        case rhs: RInt =>     pow(lhs, rhs)
+        case rhs: RDouble =>  pow(lhs, rhs)
+        case rhs: RComplex => pow(lhs, rhs)
+        case _ => error("Unsupported operation for '^' ")
+      }
+      case _ => error("Unsupported operation for '^' ")
     }
+
 
     case Sequence(l, r) => eval(l) match {
       case lhs: RBool => eval(r) match {
@@ -489,9 +518,74 @@ class Evaluator(val env: Environment, session: RSession = RSession.currentSessio
       case _ => error("Unsupported operation for '&&'")
     }
 
-    //    case AndVectorized(l, r) =>
-    //    case Or(l, r) =>
-    //    case OrVectorized(l, r)  =>
+    case AndVectorized(l, r) => eval(l) match {
+      case lhs: RBool => eval(r) match {
+        case rhs: RBool => andVec(lhs, rhs)
+        case rhs: RInt => andVec(lhs, rhs)
+        case rhs: RDouble => andVec(lhs, rhs)
+        case rhs: RComplex => andVec(lhs, rhs)
+        case _ => error("Unsupported operation for '&' ")
+      }
+      case lhs: RInt => eval(r) match {
+        case rhs: RBool => andVec(lhs, rhs)
+        case rhs: RInt => andVec(lhs, rhs)
+        case rhs: RDouble => andVec(lhs, rhs)
+        case rhs: RComplex => andVec(lhs, rhs)
+        case _ => error("Unsupported operation for '&' ")
+      }
+      case lhs: RDouble => eval(r) match {
+        case rhs: RBool => andVec(lhs, rhs)
+        case rhs: RInt => andVec(lhs, rhs)
+        case rhs: RDouble => andVec(lhs, rhs)
+        case rhs: RComplex => andVec(lhs, rhs)
+        case _ => error("Unsupported operation for '&' ")
+      }
+      case lhs: RComplex => eval(r) match {
+        case rhs: RBool => andVec(lhs, rhs)
+        case rhs: RInt => andVec(lhs, rhs)
+        case rhs: RDouble => andVec(lhs, rhs)
+        case rhs: RComplex => andVec(lhs, rhs)
+        case _ => error("Unsupported operation for '&' ")
+      }
+      case _ => error("Unsupported operation for '&' ")
+    }
+
+    case Or(l, r) => (eval(l), eval(r)) match {
+      case _ => error("Unsupported operation for '&&'")
+    }
+
+    case OrVectorized(l, r)  => eval(l) match {
+      case lhs: RBool => eval(r) match {
+        case rhs: RBool => orVec(lhs, rhs)
+        case rhs: RInt => orVec(lhs, rhs)
+        case rhs: RDouble => orVec(lhs, rhs)
+        case rhs: RComplex => orVec(lhs, rhs)
+        case _ => error("Unsupported operation for '|' ")
+      }
+      case lhs: RInt => eval(r) match {
+        case rhs: RBool => orVec(lhs, rhs)
+        case rhs: RInt => orVec(lhs, rhs)
+        case rhs: RDouble => orVec(lhs, rhs)
+        case rhs: RComplex => orVec(lhs, rhs)
+        case _ => error("Unsupported operation for '|' ")
+      }
+      case lhs: RDouble => eval(r) match {
+        case rhs: RBool => orVec(lhs, rhs)
+        case rhs: RInt => orVec(lhs, rhs)
+        case rhs: RDouble => orVec(lhs, rhs)
+        case rhs: RComplex => orVec(lhs, rhs)
+        case _ => error("Unsupported operation for '|' ")
+      }
+      case lhs: RComplex => eval(r) match {
+        case rhs: RBool => orVec(lhs, rhs)
+        case rhs: RInt => orVec(lhs, rhs)
+        case rhs: RDouble => orVec(lhs, rhs)
+        case rhs: RComplex => orVec(lhs, rhs)
+        case _ => error("Unsupported operation for '|' ")
+      }
+      case _ => error("Unsupported operation for '|' ")
+    }
+
     //    case Tilde(l, r)  =>
 
     case Assign(l, r) => val v = eval(r);
