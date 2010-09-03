@@ -174,7 +174,7 @@ case object TypeOf extends Builtin {
 }
 
 
-case object Concat extends Builtin {
+case object Concat extends Builtin with Primitive {
   import Operations.concatArrays
   import AsInteger._
   import AsLogical._
@@ -182,23 +182,8 @@ case object Concat extends Builtin {
   import AsCharacter._
 
   val params = List[FDeclArg](ThreeLDots)
-  val ldots = "..."
 
-  protected def apply(env: Environment): RObject = env.resolve(ldots) match {
-    case Some(LDotList(l)) => {
-      val evaluator = new Evaluator(env)
-      concat(for (fa <- l) yield fa match {
-        case CallArg(e) => evaluator.eval(e)
-        case CallArgDef(n, e) => {
-          val res = evaluator.eval(e)
-          env += (n, res)
-          res
-        }
-        case _ => error("internal error: wrong arguments for funcall ")
-      })
-    }
-    case _ => NULL
-  }
+  protected def apply(env: Environment): RObject = evalLDots(env, concat)
 
   def concat(obs: Seq[RObject]): RObject = {
     if (obs.size == 0) return NULL
@@ -228,9 +213,22 @@ case object RLangList {
 }
 
 trait Primitive extends RObject {
-  lazy val `type` = Type.BUILTIN
 
-    
+  def evalLDots(env: Environment, f: Seq[RObject] => RObject) = env.resolve(ThreeLDots.name) match {
+    case Some(LDotList(l)) => {
+      val evaluator = new Evaluator(env)
+      f(for (fa <- l) yield fa match {
+        case CallArg(e) => evaluator.eval(e)
+        case CallArgDef(n, e) => {
+          val res = evaluator.eval(e)
+          env += (n, res)
+          res
+        }
+        case _ => error("internal error: wrong arguments for funcall ")
+      })
+    }
+    case _ => NULL
+  }
 
 }
 

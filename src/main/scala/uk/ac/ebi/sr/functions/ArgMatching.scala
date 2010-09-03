@@ -40,7 +40,7 @@ trait ArgMatching {
     })
     //partial matching. When a "..." parameter reached matching is stopped
     if (diffTaggedArgs.size > 0) {
-      val forPartialMatching = currParams.toList.takeWhile(_.name != "...")
+      val forPartialMatching = currParams.toList.takeWhile(_.name != ThreeLDots.name)
       val forLDot = new ListBuffer[CallArgDef]()
       diffTaggedArgs foreach (arg =>
         forPartialMatching filter (_.name.startsWith(arg.name)) match {
@@ -63,20 +63,30 @@ trait ArgMatching {
    */
   def matchPos(unTagged: List[FCallArg], declArgs: List[FDeclArg], fEnv: Environment, env: Environment) {
     unTagged match {
-      //todo bug is here if declargsdef present and nonearg
-      case NoneArg :: Nil => if (declArgs.filter(!_.isInstanceOf[DeclArgDef]).size > 0) error("not enough arguments")
-        else if (declArgs.isEmpty) return
+      case NoneArg :: Nil => if (!declArgs.contains(ThreeLDots)) {
+        if (declArgs.filter(!_.isInstanceOf[DeclArgDef]).size > 0) error("not enough arguments")
+        else if (!declArgs.isEmpty) return evalRemaining(declArgs, env)
+        else return
+      }
       case _ =>
     }
-    val (f, s) = declArgs span (_.name != "...")
+    val (f, s) = declArgs span (_.name != ThreeLDots.name)
     val unTaggedForProcess = if (s.isEmpty) unTagged else {
       val (a, b) = unTagged splitAt f.size
-      env += ("...", LDotList(b))
+      val callArgs = new ListBuffer[FCallArg]
+      for (arg <- b) arg match {
+        case CallArg(Lit(ThreeLDots.name)) => fEnv.resolve(ThreeLDots.name) match {
+          case Some(LDotList(l : List[FCallArg])) => callArgs ++= l
+          case _ => callArgs += arg
+        }
+        case _ => callArgs += arg
+      }
+      env += (ThreeLDots.name, LDotList(callArgs.toList))
       a
     }
+
     if (unTaggedForProcess.size > f.size) error(" unused parameters present ")
-//    if (unTaggedForProcess.size > f.size) error(unTaggedForProcess +  " unused parameters present " + f) //todo toString method in Args
-    (unTaggedForProcess zip f) foreach (arg => arg match {
+    else if (unTaggedForProcess.size > 0) (unTaggedForProcess zip f) foreach (arg => arg match {
       case (a: CallArg, h) => env += (h.name, new Evaluator(fEnv) eval a.e)
       case (a, h: DeclArgDef) if (a == NoneArg) => env += (h.name, defaultEvaluator eval h.default)
       case _ => // an error can come up when a variable is requested
@@ -91,8 +101,6 @@ trait ArgMatching {
       case _ => // do nothing. An error can come up when a variable is requested but not found
     })
   }
-
-  import scala.collection.mutable.Map
 
   def evalArgs(args: List[FCallArg], fEnv: Environment, enclosing: Environment) = {
     val env = Environment.childEnv(enclosing)

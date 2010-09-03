@@ -38,8 +38,8 @@ case class FunDecl(params: List[FDeclArg], stats: Expression) extends Expression
 abstract class FDeclArg(val name: String) extends Expression
 case object ThreeLDots extends FDeclArg("...")
 case class TwoLDots(num: Int) extends FDeclArg(".." + num)
-case class DeclArg(override val name: String) extends FDeclArg(name)
-case class DeclArgDef(override val name: String, default: Expression) extends FDeclArg(name)
+case class DeclArg(dName: String) extends FDeclArg(dName)
+case class DeclArgDef(dName: String, default: Expression) extends FDeclArg(dName)
 
 abstract class FCallArg extends Expression
 case class CallArg(e: Expression) extends FCallArg

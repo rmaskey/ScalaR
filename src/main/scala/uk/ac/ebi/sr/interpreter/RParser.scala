@@ -242,7 +242,7 @@ object RParser extends StdTokenParsers {
 //    }
 //  }
 
-  def parseUnwrap(input: String, f: => Parser[Expression] = program): Any = {
+  def parseUnwrap(input: String, f: => Parser[Expression] = rProgram): Any = {
     val tokens = new lexical.Scanner(input.trim)
     phrase(f)(tokens) match {
       case Success(tree, _) => tree
