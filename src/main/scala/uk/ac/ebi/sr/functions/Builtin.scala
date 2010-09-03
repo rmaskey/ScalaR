@@ -80,27 +80,25 @@ case object Attr extends Builtin with Assignable {
 
   def attr(r: RObject, n: String) = r.attr(n)
 
-  def `attr<-`(r: RObject, n: String, v: RObject) = {
-    n match {
-      case DIM => r match {
-        case s: Sequential[_] => {
-          val product = `as.integer`(v).s.foldLeft(1)((a, b) => a * b)
-          if (product == s.length) setAttr(r, DIM, v)
-          else error("product of dims: " + product + " did not match the object length: " + s.length)
-        }
-        case _ => error("wrong left part of the assignment")
+  def `attr<-`(r: RObject, n: String, v: RObject) = n match {
+    case DIM => r match {
+      case s: Sequential[_] => {
+        val product = `as.integer`(v).s.foldLeft(1)((a, b) => a * b)
+        if (product == s.length) setAttr(r, DIM, v)
+        else error("product of dims: " + product + " did not match the object length: " + s.length)
       }
-      //case DIM_NAMES =>
-      case NAMES => r match {
-        case s: Sequential[_] => {
-          val names = `as.character`(v)
-          if (names.length > s.length) error("'names' attribute must be the same length as the vector")
-          else setAttr(s, NAMES, `length<-`(names, s.length))
-        }
-        case _ => setAttr(r, n, v)
+      case _ => error("wrong left part of the assignment")
+    }
+    //case DIM_NAMES =>
+    case NAMES => r match {
+      case s: Sequential[_] => {
+        val names = `as.character`(v)
+        if (names.length > s.length) error("'names' attribute must be the same length as the vector")
+        else setAttr(s, NAMES, `length<-`(names, s.length))
       }
       case _ => setAttr(r, n, v)
     }
+    case _ => setAttr(r, n, v)
   }
 
   def setAttr(r: RObject, n: String, v: RObject) =
@@ -116,7 +114,19 @@ case object Attributes extends Builtin {
     case _ => NULL
   }
 
-  def attributes(r: RObject) = {println(r.attributes); NULL }// todo should return a list of attributes
+  def attributes(r: RObject) = {
+    val a = r.attributes
+    val names = new Array[String](a.size)
+    val objs = new Array[RObject](a.size)
+
+    var i = 0
+    a.toList.foreach((p: (String, RObject)) => {
+      names(i) = p._1
+      objs(i) = p._2
+      i += 1
+    })
+    RList(objs, names)
+  }
 }  
 
 case object Length extends Builtin with Assignable {
@@ -205,14 +215,7 @@ case object Concat extends Builtin with Primitive {
   }
 }
 
-case object RLangList {
-
-  val params = List[FDeclArg]()
-
-  
-}
-
-trait Primitive extends RObject {
+trait Primitive {
 
   def evalLDots(env: Environment, f: Seq[RObject] => RObject) = env.resolve(ThreeLDots.name) match {
     case Some(LDotList(l)) => {
@@ -230,8 +233,40 @@ trait Primitive extends RObject {
     case _ => NULL
   }
 
+  def evalLDotsWithNames(env: Environment, f : (Seq[RObject], Seq[String]) => RObject) =
+  env.resolve(ThreeLDots.name) match {
+    case Some(LDotList(l)) => {
+      val evaluator = new Evaluator(env)
+      val names = new Array[String](l.size)
+      var i = -1
+      val list = for (fa <- l) yield {
+        i += 1
+        fa match {
+          case CallArg(e) => evaluator.eval(e)
+          case CallArgDef(n, e) => {
+            val res = evaluator.eval(e)
+            env += (n, res)
+            names(i) = n
+            res
+          }
+          case _ => error("internal error: wrong arguments for funcall ")
+        }
+      }
+      f(list, names)
+    }
+    case _ => NULL
+  }
 }
 
-// try, which, print, colnames, rownames, is.null, write.table, list, index, $, %in%, return,  diag(n), log2(x),
-// new("AnnotatedDataFrame", data=efscv), require
+
+case object RLangList extends Builtin with Primitive {
+
+  val params = List[FDeclArg](ThreeLDots)
+
+  protected def apply(env: Environment): RObject = evalLDotsWithNames(env, list)
+
+  def list(obs: Seq[RObject], names: Seq[String]): RObject = RList(obs.toArray, names.toArray)
+}
+
+// todo  for analytics: try, which, print, colnames, rownames, is.null, write.table, %in%, diag(n), log2(x), require
 
