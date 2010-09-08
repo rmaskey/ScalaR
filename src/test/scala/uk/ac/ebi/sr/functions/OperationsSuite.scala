@@ -23,4 +23,20 @@ class OperationsSuite extends FunSuite {
     //println(Length.`length<-`(RInt(Array.tabulate(10)(_.toInt)), 7))
     assert(equalSeq(evaluate(input).asInstanceOf[RInt], RInt(1, 2, 3)))
   }
+
+  test("rlist element extraction test") {
+    val input =
+      """
+        l = list(1,2,3,4); attr(l, "names") <- c("a", "sec", "er");  l$"a"
+      """
+    assert(equalSeq(evaluate(input).asInstanceOf[RInt], RInt(1)))
+  }
+
+  test("rlist element extraction test 2") {
+    val input =
+      """
+        l = list(1,2,3,4); attr(l, "names") <- c("a", "sec", "er");  l$"s"
+      """
+    assert(equalSeq(evaluate(input).asInstanceOf[RInt], RInt(2)))
+  }
 }

@@ -24,7 +24,7 @@ class RList(val s: Array[RObject]) extends Recursive {
   def applyF(f: => Array[RObject]) = RList(f)
 
   def extract(name: String): RObject = attributes.get(Attr.NAMES) match {
-    case Some(c: RChar) => searchForName(c.s, name)
+    case Some(c: RChar) => val res = searchForName(c.s, name); println(res);res
     case _ => NULL
   }
 
@@ -36,7 +36,7 @@ class RList(val s: Array[RObject]) extends Recursive {
 
     while (i < len) {
       val value = a(i)
-      if (value.startsWith(name)) {
+      if (value != null && value.startsWith(name)) {
         if (value.length == nLen) return this.s(i)
         else found += i
       }
@@ -44,6 +44,8 @@ class RList(val s: Array[RObject]) extends Recursive {
     }
     if (found.size == 1) this.s(found.head) else NULL
   }
+
+  override def toString = if (isEmpty) NULL.asString else s.toList.toString
 }
 
 object RList {
@@ -52,4 +54,10 @@ object RList {
   val m = Manifest.classType[RObject](classOf[RObject])
 
   def apply(s: Array[RObject]) = new RList(s)
+
+  def apply(s: Array[RObject], n: Array[String]) = {
+    val l = new RList(s)
+    Attr.`attr<-`(l, Attr.NAMES, RChar(n))
+    l
+  }
 }

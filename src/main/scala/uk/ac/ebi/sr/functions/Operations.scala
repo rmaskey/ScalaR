@@ -260,27 +260,27 @@ object Operations {
 
   def andVec(l: RInt, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Int) => boolean2Int(f != 0 && s != 0), RBool.NA)))
   def andVec(l: RInt, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Double) => boolean2Int(f != 0 && s != .0), RBool.NA)))
-  def andVec(l: RInt, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Complex) => boolean2Int(f != 0 && s != 0), RBool.NA)))
+  def andVec(l: RInt, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Complex) => boolean2Int(f != 0 && (s neq 0)), RBool.NA)))
 
   def andVec(l: RDouble, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Int) => boolean2Int(f != .0 && s != 0), RBool.NA)))
   def andVec(l: RDouble, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Double) => boolean2Int(f != .0 && s != .0), RBool.NA)))
-  def andVec(l: RDouble, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Complex) => boolean2Int(f != .0 && s != 0), RBool.NA)))
+  def andVec(l: RDouble, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Complex) => boolean2Int(f != .0 && (s neq 0)), RBool.NA)))
 
-  def andVec(l: RComplex, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Int) => boolean2Int(f != 0 && s != 0), RBool.NA)))
-  def andVec(l: RComplex, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Double) => boolean2Int(f != 0 && s != .0), RBool.NA)))
-  def andVec(l: RComplex, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Complex) => boolean2Int(f != 0 && s != 0), RBool.NA)))
+  def andVec(l: RComplex, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Int) => boolean2Int((f neq 0) && s != 0), RBool.NA)))
+  def andVec(l: RComplex, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Double) => boolean2Int((f neq 0) && s != .0), RBool.NA)))
+  def andVec(l: RComplex, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Complex) => boolean2Int((f neq 0) && (s neq 0)), RBool.NA)))
 
   def orVec(l: RInt, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Int) => boolean2Int(f != 0 || s != 0), RBool.NA)))
   def orVec(l: RInt, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Double) => boolean2Int(f != 0 || s != .0), RBool.NA)))
-  def orVec(l: RInt, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Complex) => boolean2Int(f != 0 || s != 0), RBool.NA)))
+  def orVec(l: RInt, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Int, s: Complex) => boolean2Int(f != 0 || (s neq 0)), RBool.NA)))
 
   def orVec(l: RDouble, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Int) => boolean2Int(f != .0 || s != 0), RBool.NA)))
   def orVec(l: RDouble, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Double) => boolean2Int(f != .0 || s != .0), RBool.NA)))
-  def orVec(l: RDouble, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Complex) => boolean2Int(f != .0 || s != 0), RBool.NA)))
+  def orVec(l: RDouble, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Double, s: Complex) => boolean2Int(f != .0 || (s neq 0)), RBool.NA)))
 
-  def orVec(l: RComplex, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Int) => boolean2Int(f != 0 || s != 0), RBool.NA)))
-  def orVec(l: RComplex, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Double) => boolean2Int(f != 0 || s != .0), RBool.NA)))
-  def orVec(l: RComplex, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Complex) => boolean2Int(f != 0 || s != 0), RBool.NA)))
+  def orVec(l: RComplex, r: RInt): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Int) => boolean2Int((f neq 0) || s != 0), RBool.NA)))
+  def orVec(l: RComplex, r: RDouble): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Double) => boolean2Int((f neq 0) || s != .0), RBool.NA)))
+  def orVec(l: RComplex, r: RComplex): RBool = dim(l, r, RBool(modeIterate(l, r, (f: Complex, s: Complex) => boolean2Int((f neq 0) || (s neq 0)), RBool.NA)))
 
 
   def seq(l: RInt, r: RInt): RInt = RInt(genSequence(l, r))

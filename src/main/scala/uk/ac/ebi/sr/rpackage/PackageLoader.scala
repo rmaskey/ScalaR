@@ -5,9 +5,9 @@ import uk.ac.ebi.sr.model.{RObject, Environment}
 import uk.ac.ebi.sr.RSession
 import uk.ac.ebi.sr.model.RVal.RChar
 
-import java.io.File
 import uk.ac.ebi.sr.interpreter.{DeclArg, FDeclArg, NULL}
 import swing._
+import java.io.{FileFilter, File}
 
 /**
  *
@@ -26,21 +26,19 @@ object PackageLoader extends Builtin {
     case _ => NULL
   }
 
-  def loadPackage(r: String) = {
-    //todo don't need since for now we just load all the libraries
-    //val loaded = RSession.currentSession.loadedLibraries
-    // if (loaded.contains(r)) RSession.global.addPackage(r, loaded.get(r).get)
-
-    val chooser = new FileChooser
-    chooser.multiSelectionEnabled_=(true)
-    chooser.fileSelectionMode_=(FileChooser.SelectionMode.DirectoriesOnly)
-    //todo for now Grid is used
-    chooser.showDialog(new GridPanel(1,1), "select")
-    val seq = chooser.selectedFiles
-    for (f: File <- seq) {
-      if (f.getName != r) {} //todo warning should be herreor error?
-      RPackage.loadPackage(f, RSession.currentSession.base, RSession.currentSession)
+  def loadPackage(r: String): RObject = {
+    val session = RSession.currentSession
+    val loaded = session.loadedLibraries
+    if (!loaded.contains(r)) {
+      RSession.libs.foreach((s: String) => {
+        val files = (new File(s)).listFiles(new FileFilter {
+          def accept(f: File) = f.isDirectory
+        })
+        files.foreach((f: File) =>
+          if (f.getName == r) { RPackage.loadPackage(f, session.base, session); return NULL })
+      })
     }
+    //todo warning here: package 'r' not found
     NULL //todo print will be RObject later (print(null) - should print nothing)
   }
 }

@@ -123,8 +123,8 @@ object RParser extends StdTokenParsers {
       { case ap ~ subs => subs.foldLeft(ap) { case (v, "[[" ~ sub) => DIndex(v, sub.asInstanceOf[List[IndexArgument]])
                                               case (v, "[" ~ sub) => Index(v, sub.asInstanceOf[List[IndexArgument]])
                                               case (v, "(" ~ app) => FunCall(v, app.asInstanceOf[List[FCallArg]])
-                                              case (v, "$" ~ ext) => ExtractProperty(v, ext mkString)
-                                              case (v, "@" ~ ext) => ExtractSlot(v, ext mkString) } }
+                                              case (v, "$" ~ ext) => ExtractProperty(v, ext toString)
+                                              case (v, "@" ~ ext) => ExtractSlot(v, ext toString) } }
 
   // None or "empty comma" arguments for "[[ ]]" will cause an error later in the interpreter
   def index:  RLangParser[String ~ List[Expression]] = "[" ~ repsep(indexArg, ",") <~ "]"
@@ -133,15 +133,14 @@ object RParser extends StdTokenParsers {
                                     case _ => EmptyIndex }
 
   def args: RLangParser[String ~ List[FCallArg]] =
-    "(" ~ repsep(opt(opt(name <~ "=") ~ expression) ^^
-          { case Some(Some(id) ~ e) => CallArgDef(id, e)
-            case Some(_ ~ e) => CallArg(e)
+    "(" ~ repsep(opt(opt(name <~ "=") ~ expression | "...") ^^
+          { case Some(Some(id: String) ~ (e: Expression)) => CallArgDef(id, e)
+            case Some(_ ~ (e: Expression)) => CallArg(e)
+            case Some(ldots) => CallArg(ThreeLDots)
             case _ => NoneArg }, ",") <~ ")"
 
-  def extractProperty = "$" ~ propertyName
-  def extractSlot     = "@" ~ propertyName
-
-  def propertyName    = name ^^ { case n => (Var(n) :: Nil) }
+  def extractProperty = "$" ~ name
+  def extractSlot     = "@" ~ name
 
   def apply: RLangParser[Expression] =
     ( boolean

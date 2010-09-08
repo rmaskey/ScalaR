@@ -21,7 +21,7 @@ class CoercionSuite extends FunSuite {
     val d = DoubleCoercion.int2Double(i)
     assert(d == NAs.doubleNA)
     val c = ComplexCoercion.double2Complex(d)
-    assert(CharCoercion.complex2Char(c) == NAs.charNA)
+    assert(CharCoercion.int2Char(i) == NAs.charNA)
   }
 
 }

@@ -4,7 +4,7 @@ import collection.mutable.Map
 import functions._
 import model.{RObject, Environment}
 import java.io.{FileFilter, File}
-import rpackage.{PackageLoader, RPackage}
+import rpackage.{Libs, PackageLoader, RPackage}
 
 /**
  *
@@ -18,29 +18,38 @@ class RSession {
   val base = RSession.baseEnv
 
   val loadedLibraries = Map[String, RPackage]()
-  val packages = "packages/"
-  val waitingPacks = collection.mutable.Set[File]() ++ (new File(packages)).listFiles(new FileFilter {
-    def accept(f: File) = f.isDirectory
-  })
+  val waitingPacks = {
+    val set = collection.mutable.Set[File]()
+    RSession.libs.foreach((s: String) =>
+      set ++ (new File(s)).listFiles(new FileFilter {
+        def accept(f: File) = f.isDirectory
+      }))
+    set
+  }
 
   waitingPacks.foreach((f: File) =>
-  if (!loadedLibraries.contains(f.getName)) { RPackage.loadPackage(f, base, this) })
+    if (!loadedLibraries.contains(f.getName)) RPackage.loadPackage(f, base, this)
+    else {}) //todo warning
 }
 
 object RSession {
-
+  val packages = "packages/"
+  val libs = scala.collection.mutable.ListBuffer[String](packages)
 
   val baseEnv = Environment.emptyEnv ++= Map(
-  "attr" -> Attr,
-  "attributes" -> Attributes,
-  "length" -> Length,
-  "as.integer" -> AsInteger,
-  "as.logical" -> AsLogical,
-  "as.double" -> AsDouble,
-  "as.character" -> AsCharacter,
-  "c" -> Concat,
-  "typeof" -> TypeOf,
-  "library" -> PackageLoader)
+    "attr" -> Attr,
+    "attributes" -> Attributes,
+    "length" -> Length,
+    "as.integer" -> AsInteger,
+    "as.logical" -> AsLogical,
+    "as.double" -> AsDouble,
+    "as.character" -> AsCharacter,
+    "c" -> Concat,
+    "typeof" -> TypeOf,
+    "library" -> PackageLoader,
+    "list" -> RLangList,
+    "addLibDir" -> Libs,
+    "library" -> PackageLoader)
   val globalEnv = Environment.childEnv(baseEnv)
   
   val currentSession = new RSession //todo to change

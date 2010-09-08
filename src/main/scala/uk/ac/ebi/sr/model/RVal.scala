@@ -37,13 +37,14 @@ trait Sequential[S] extends RObject {
   def isEmpty = s == null || s.length == 0
   val NA: S
   val m: Manifest[S]
+
+  override def toString = if (isEmpty) NULL.asString else s.toList.toString  
+
 }
 
 trait RVal[T] extends Sequential[T] {
 
   def empty: RVal[T]
-
-  override def toString = if (isEmpty) NULL.asString else s.toList.toString
 }
 
 

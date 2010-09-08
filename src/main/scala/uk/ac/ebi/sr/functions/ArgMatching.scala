@@ -75,7 +75,7 @@ trait ArgMatching {
       val (a, b) = unTagged splitAt f.size
       val callArgs = new ListBuffer[FCallArg]
       for (arg <- b) arg match {
-        case CallArg(Lit(ThreeLDots.name)) => fEnv.resolve(ThreeLDots.name) match {
+        case CallArg(ThreeLDots) => fEnv.resolve(ThreeLDots.name) match {
           case Some(LDotList(l : List[FCallArg])) => callArgs ++= l
           case _ => callArgs += arg
         }

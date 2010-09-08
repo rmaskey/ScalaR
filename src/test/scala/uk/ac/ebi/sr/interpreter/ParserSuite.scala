@@ -19,7 +19,7 @@ class ParserSuite extends FunSuite {
     val input =
         """ function() max();
             5 + 3.4          ; """
-    val res = RParser.parseUnwrap(input, RParser.rProgram) match {
+    val res = RParser.parseUnwrap(input) match {
       case Block(
         List(
           FunDecl(
@@ -43,7 +43,7 @@ class ParserSuite extends FunSuite {
                            # this is a comment
 
              plot(x1,type = "b",col="red",pch=5); """
-    val res = RParser.parseUnwrap(input, RParser.rProgram) match {
+    val res = RParser.parseUnwrap(input) match {
       case Block(
         List(
           Block(List(
@@ -73,7 +73,7 @@ class ParserSuite extends FunSuite {
               col="green",
               pch="$"); #;;;;;
            function(m) max(abs(m));   """
-    val res = RParser.parseUnwrap(input, RParser.rProgram) match {
+    val res = RParser.parseUnwrap(input) match {
       case Block(
         List(
           FunCall(
@@ -109,7 +109,7 @@ class ParserSuite extends FunSuite {
               eigen(m,only.values = TRUE);#;;;;;;; ggh
               max(abs(values));
             }; """
-    val res = RParser.parseUnwrap(input, RParser.rProgram) match {
+    val res = RParser.parseUnwrap(input) match {
       case Block(
         List(
           Add(
@@ -150,7 +150,7 @@ class ParserSuite extends FunSuite {
             obj <- tune(svm, Class, data = train,
             ranges = list(gamma = seq(0.01,0.2, 0.03), nu = seq(0.01,0.2,0.03)),
 	          type="nu-classification", tunecontrol=tune.control(cross=2));"""
-    val res = RParser.parseUnwrap(input, RParser.rProgram) match {
+    val res = RParser.parseUnwrap(input) match {
       case Block(
         List(
           AssignToLeft(
@@ -222,7 +222,7 @@ class ParserSuite extends FunSuite {
 
   test("function declaration bug fix ") {
     val input = "wer = function(x) {x*2} + 3"
-    val res = RParser.parseUnwrap(input, RParser.rProgram) match {
+    val res = RParser.parseUnwrap(input) match {
       case Block(
         List(
           Assign(
@@ -263,7 +263,7 @@ class ParserSuite extends FunSuite {
 
             5 + 3.4
         """
-    val res = RParser.parseUnwrap(input, RParser.rProgram) match {
+    val res = RParser.parseUnwrap(input) match {
       case Block(
         List(
           FunCall(
@@ -307,7 +307,7 @@ class ParserSuite extends FunSuite {
             }
             x
             """
-    val res = RParser.parseUnwrap(input, RParser.rProgram) match {
+    val res = RParser.parseUnwrap(input) match {
       case Block(
         List(
           Num(_),
