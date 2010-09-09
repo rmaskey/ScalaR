@@ -26,7 +26,7 @@ case object AsLogical extends Builtin {
   //TODO coercions should be made properly. No attribute copying is done for now
   def `as.logical`(x: RObject): RBool = x match {
     case b: RBool => b
-    case i: RInt => RBool(i.s) // unless we change the bool type
+    case i: RInt => RBool(convertArray(i.s, int2Bool))
     case d: RDouble => RBool(convertArray(d.s, (e: Double) => double2Bool(e)))
     case c: RComplex => RBool(convertArray(c.s, (e: Complex) => complex2Bool(e)))
     case c: RChar => RBool(convertArray(c.s, (e: String) => char2Bool(e)))//in if - error("argument is not interpretable as logical")))

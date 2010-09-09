@@ -1,7 +1,8 @@
-package uk.ac.ebi.sr.functions
+package uk.ac.ebi.sr
+package functions
 
-import uk.ac.ebi.sr.model.{Environment, RObject}
-import uk.ac.ebi.sr.interpreter.{DeclArg, FDeclArg, NULL}
+import model.{Environment, RObject}
+import interpreter.{DeclArg, FDeclArg, NULL}
 
 /**
  * Date: 09-Sep-2010

@@ -17,7 +17,11 @@ object BoolCoercion {
     else if (s == "FALSE" || s == "false") 0
     else boolNA
 
-  def int2Bool(i: Int) = i
+  def int2Bool(i: Int) = i match {
+    case 0 => 0
+    case `intNA` => i
+    case any => 1
+  }
 
   def double2Bool(d: Double): Bool = if (d == doubleNA) boolNA else d.toInt
 

@@ -46,12 +46,22 @@ class RExecutor(var env: Environment) {
 
   def interpret(input: String): String = RParser.parseUnwrap(input, RParser.rProgram) match {
     case r: RParser.Failure => r.toString
+    case Block(List(e: NoPrintedReturnExpression)) => try {
+        Interpreter.interpret(e, env)._1
+        RExecutor.EMPTY_RES
+      } catch {
+        case ex: java.lang.RuntimeException => "error: " + ex.getMessage()
+      }
     case e: Expression =>
       try {
         Interpreter.interpret(e, env)._1.toString
       } catch {
-        case e: java.lang.RuntimeException => "error: " + e.getMessage()
+        case ex: java.lang.RuntimeException => "error: " + ex.getMessage()
       }
     case er => "unexpected error: " + er
   }
+}
+
+object RExecutor {
+  val EMPTY_RES = ""
 }

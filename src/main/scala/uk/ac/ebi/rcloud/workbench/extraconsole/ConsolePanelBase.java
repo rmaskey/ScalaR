@@ -139,8 +139,7 @@ public class ConsolePanelBase extends JTextPane {
     }
 
     public void print(String msg) {
-        writeAttrs(ConsolePanelBase.colorAttributes(Color.BLACK),
-            msg);
+        if (msg != null && !msg.isEmpty()) writeAttrs(ConsolePanelBase.colorAttributes(Color.BLACK), msg);
     }
 
     public void print(Color color, String msg) {

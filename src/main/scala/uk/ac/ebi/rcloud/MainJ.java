@@ -57,8 +57,9 @@ public class MainJ {
 //        };
         ActionListener listener = new ActionListener() {
             public void actionPerformed(ActionEvent event) {
-                console.print(exec.interpret(event.getActionCommand().trim()));
-                console.setPrompt("\n> ");
+                String res = exec.interpret(event.getActionCommand().trim());
+                console.print(res);
+                if (res.isEmpty()) console.setPrompt("> "); else console.setPrompt("\n> ");
                 console.printPrompt();
             }
         };

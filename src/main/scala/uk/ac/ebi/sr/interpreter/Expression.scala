@@ -12,26 +12,27 @@ import model.RVal.RChar
 sealed abstract class Expression extends RObject {
   val `type` = Type.EXPRESSION
 }
+trait NoPrintedReturnExpression extends Expression
 
 case class LDotList(l: List[FCallArg]) extends RObject {
   val `type` = Type.DOTDOTDOT
 }
 
-case class Block(val l: List[Expression]) extends Expression
+case class Block(l: List[Expression]) extends Expression
 
 case class IfStructure(_if: If, elseIf: List[ElseIf], _else: Option[Else]) extends Expression
 case class If(condition: Expression, stats: Expression) extends Expression
 case class ElseIf(condition: Expression, stats: Expression) extends Expression
 case class Else(stats: Expression) extends Expression
-case class While(condition: Expression, stats: Expression) extends Expression
-case class Repeat(stats: Expression) extends Expression
+case class While(condition: Expression, stats: Expression) extends NoPrintedReturnExpression
+case class Repeat(stats: Expression) extends NoPrintedReturnExpression
 case class For(_var: Var, expr: Expression, stats: Expression) extends Expression
 
 case class Var(ident: String) extends Expression
 case class Lit(lit: String) extends Expression
 case class Num(v: RObject) extends Expression
 
-case class FunDecl(params: List[FDeclArg], stats: Expression) extends Expression {
+case class FunDecl(params: List[FDeclArg], stats: Expression) extends NoPrintedReturnExpression {
   require(params.filter(_ == ThreeLDots).length <= 1)
 }
 
@@ -47,7 +48,6 @@ case class CallArgDef(name: String, e: Expression) extends FCallArg
 case object NoneArg extends FCallArg
 
 case class FunCall(function: Expression, args: List[FCallArg]) extends Expression
-
 
 case class Index(e: Expression, subset: List[IndexArgument]) extends Expression
 case class DIndex(e: Expression, subset: List[IndexArgument]) extends Expression
@@ -83,11 +83,11 @@ case class Less(l: Expression, r: Expression) extends Expression
 case class Eq(l: Expression, r: Expression) extends Expression
 case class NotEq(l: Expression, r: Expression) extends Expression
 
-case class Assign(l: Expression, r: Expression) extends Expression // =
-case class AssignToLeft(l: Expression, r: Expression) extends Expression // <-
-case class Assign2ToLeft(l: Expression, r: Expression) extends Expression // <<-
-case class AssignToRight(l: Expression, r: Expression) extends Expression // ->
-case class Assign2ToRight(l: Expression, r: Expression) extends Expression // ->>
+case class Assign(l: Expression, r: Expression) extends NoPrintedReturnExpression// =
+case class AssignToLeft(l: Expression, r: Expression) extends NoPrintedReturnExpression // <-
+case class Assign2ToLeft(l: Expression, r: Expression) extends NoPrintedReturnExpression // <<-
+case class AssignToRight(l: Expression, r: Expression) extends NoPrintedReturnExpression // ->
+case class Assign2ToRight(l: Expression, r: Expression) extends NoPrintedReturnExpression // ->>
 
 case class AndVectorized(l: Expression, r: Expression) extends Expression // &
 case class And(l: Expression, r: Expression) extends Expression // &&

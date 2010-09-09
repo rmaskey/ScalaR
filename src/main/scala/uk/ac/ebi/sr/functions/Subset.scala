@@ -17,6 +17,7 @@ object Subset {
 
   //todo subsetting by matrix is not implemented yet
   //todo support for EXACT = TRUE/FALSE
+  //todo result should have appropriate dim attribute
   def `[`[A](seq: Sequential[A], dimSubset: List[RObject])(implicit m: Manifest[A]): RObject =
     (seq.attr(Attr.DIM), dimSubset.size) match {
       case (s: Sequential[Int], 1) =>

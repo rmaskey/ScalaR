@@ -1,6 +1,8 @@
-package uk.ac.ebi.sr.functions
+package uk.ac.ebi.sr
+package functions
 
-import uk.ac.ebi.sr.rutils.NAs
+import rutils.NAs
+import model.RVal.RDouble
 
 /**
  *
