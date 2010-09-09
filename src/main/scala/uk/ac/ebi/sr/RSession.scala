@@ -49,7 +49,8 @@ object RSession {
     "library" -> PackageLoader,
     "list" -> RLangList,
     "addLibDir" -> Libs,
-    "library" -> PackageLoader)
+    "library" -> PackageLoader,
+    "sin" -> Sine)
   val globalEnv = Environment.childEnv(baseEnv)
   
   val currentSession = new RSession //todo to change
