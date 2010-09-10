@@ -5,11 +5,14 @@ import interpreter._
 import model._
 
 /**
+ * Trait that is used by interpreter for calling functions.
+ * Every function should be mixed with this trait.
  *
  * Date: Jun 28, 2010
  * @author Taalai Djumabaev
  */
 trait RFunction extends ((List[FCallArg], Environment) => RObject)
+
 
 /**
  * Closure as in R language. Changing of body or environment is not yet supported.

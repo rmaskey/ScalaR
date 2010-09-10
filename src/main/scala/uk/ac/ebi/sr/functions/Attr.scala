@@ -11,9 +11,7 @@ import model.RVal.{RChar, RBool}
  * Date: Jul 5, 2010
  * @author Taalai Djumabaev
  */
-case object Attr extends Builtin with Assignable {
-  import AsInteger._
-  import AsCharacter._
+case object Attr extends Assignable {
   import Length._
 
   val X = "x"
@@ -45,7 +43,7 @@ case object Attr extends Builtin with Assignable {
   def `attr<-`(r: RObject, n: String, v: RObject) = n match {
     case DIM => r match {
       case s: Sequential[_] => {
-        val product = `as.integer`(v).s.foldLeft(1)((a, b) => a * b)
+        val product = AsInteger(v).s.foldLeft(1)((a, b) => a * b)
         if (product == s.length) setAttr(r, DIM, v)
         else error("product of dims: " + product + " did not match the object length: " + s.length)
       }
@@ -55,7 +53,7 @@ case object Attr extends Builtin with Assignable {
 
     case NAMES => r match {
       case s: Sequential[_] => {
-        val names = `as.character`(v)
+        val names = AsCharacter(v)
         if (names.length > s.length) error("'names' attribute must be the same length as the vector")
         else setAttr(s, NAMES, `length<-`(names, s.length))
       }

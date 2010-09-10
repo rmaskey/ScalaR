@@ -5,7 +5,7 @@ import interpreter._
 import model.{Environment, RObject}
 
 /**
- * A trait used to map arguments of a calling function to it's declared arguments.
+ * A trait used to match arguments of a calling function to it's declared arguments.
  *
  * Date: Jul 5, 2010
  * @author Taalai Djumabaev
@@ -24,7 +24,7 @@ trait ArgMatching {
   val params: List[FDeclArg]
 
   /**
-   * Method used to map arguments of a calling function to it's declared arguments.
+   * Method used to match arguments of a calling function to it's declared arguments.
    *
    * @param args arguments function being called with
    * @param fEnv calling environment of function

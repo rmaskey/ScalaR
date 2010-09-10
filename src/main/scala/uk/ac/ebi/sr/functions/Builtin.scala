@@ -2,16 +2,17 @@ package uk.ac.ebi.sr
 package functions
 
 import interpreter._
-import model.RVal.{RInt, RChar, RBool, RDouble, RComplex}
+import model.RVal.RChar
 import model._
 
 /**
+ * Abstract class for functions. Does the arg matching.
  *
  * Date: Jul 5, 2010
  * @author Taalai Djumabaev
  */
 abstract class Builtin extends RObject with ArgMatching with RFunction {
-  import scala.collection.mutable.Map
+
   //todo should it be global environment. do we actually need this default one?
   lazy val defaultEvaluator = new Evaluator(Environment.emptyEnv)
 
@@ -24,6 +25,11 @@ abstract class Builtin extends RObject with ArgMatching with RFunction {
     res
   }
 
+  /**
+   * abstract method that actually executes the function
+   *
+   * @param env environment with the matched arguments
+   */
   protected def process(env: Environment): RObject
 }
 

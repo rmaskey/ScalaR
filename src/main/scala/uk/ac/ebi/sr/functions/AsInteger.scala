@@ -12,9 +12,11 @@ import Operations.{convertArray, concatArrays}
  * Date: Aug 2, 2010
  * @author Taalai Djumabaev
  */
+
 case object AsLogical extends StdBuiltin {
   import rutils.BoolCoercion._
 
+  // needed to pass it as a paramter. Normally use the AsLogical(x) variant.
   def `as.logical`(r: RObject): RBool = apply(r)
 
  //TODO coercions should be made properly. No attribute copying is done for now
@@ -32,6 +34,7 @@ case object AsLogical extends StdBuiltin {
 case object AsInteger extends StdBuiltin {
   import rutils.IntCoercion._
 
+  // needed to pass it as a paramter. Normally use the AsInteger(x) variant.
   def `as.integer`(r: RObject) = apply(r)
 
   def apply(r: RObject): RInt = r match {
@@ -48,6 +51,7 @@ case object AsInteger extends StdBuiltin {
 case object AsDouble extends StdBuiltin {
   import rutils.DoubleCoercion._
 
+  // needed to pass it as a paramter. Normally use the AsDouble(x) variant.
   def `as.double`(r: RObject) = apply(r)
 
   def apply(r: RObject): RDouble = r match {
@@ -64,6 +68,7 @@ case object AsDouble extends StdBuiltin {
 case object AsCharacter extends StdBuiltin {
   import rutils.CharCoercion._
 
+  // needed to pass it as a paramter. Normally use the AsCharacter(x) variant.
   def `as.character`(r: RObject) = apply(r)
 
   def apply(r: RObject): RChar = r match {

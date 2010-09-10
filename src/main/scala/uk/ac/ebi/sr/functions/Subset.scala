@@ -104,7 +104,7 @@ object Subset {
         case _ => error("only 0's may be mixed with negative subscripts")
       }
     case d: RDouble =>
-      val i = `as.integer`(d)
+      val i = AsInteger(d)
       isOfOneSign(i) match {
         case (true, false) => if (i.forall((a: Int) => a <= dim)) i.s else error("subscript out of bounds")
         case (false, true) => negateInd(i, dim)

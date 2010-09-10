@@ -6,6 +6,7 @@ import model.RVal.RInt
 import interpreter.{NULL, DeclArg, FDeclArg}
 
 /**
+ * function evaluating the length of the object. If object has no length 0 is returned
  *
  * Date: Jul 5, 2010
  * @author Taalai Djumabaev
