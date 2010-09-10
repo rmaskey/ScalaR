@@ -1,12 +1,11 @@
-package uk.ac.ebi.sr.rpackage
+package uk.ac.ebi.sr
+package rpackage
 
-import uk.ac.ebi.sr.functions.Builtin
-import uk.ac.ebi.sr.model.{RObject, Environment}
-import uk.ac.ebi.sr.RSession
-import uk.ac.ebi.sr.model.RVal.RChar
+import functions.Builtin
+import model.{RObject, Environment}
+import model.RVal.RChar
 
-import uk.ac.ebi.sr.interpreter.{DeclArg, FDeclArg, NULL}
-import swing._
+import interpreter.{DeclArg, FDeclArg, NULL}
 import java.io.{FileFilter, File}
 
 /**
@@ -17,11 +16,10 @@ import java.io.{FileFilter, File}
 
 object PackageLoader extends Builtin {
 
-  val frame = new Frame
   val PACKAGE = "package"
   val params = List[FDeclArg](DeclArg(PACKAGE))
 
-  protected def apply(env: Environment): RObject = env.resolve(PACKAGE) match {
+  protected def process(env: Environment): RObject = env.resolve(PACKAGE) match {
     case Some(r: RChar) => if (r.length == 1) loadPackage(r.s(0)) else NULL
     case _ => NULL
   }

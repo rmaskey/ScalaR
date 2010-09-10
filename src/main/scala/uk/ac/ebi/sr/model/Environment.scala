@@ -9,7 +9,8 @@ import interpreter.{Evaluator, Expression}
  * Date: 30.05.2010
  * @author Taalai Djumabaev
  */
-class Environment(val ids: Map[String, RObject] = Map[String, RObject](), val parent: Option[Environment] = None) extends RObject {
+class Environment(val ids: Map[String, RObject] = Map[String, RObject](),
+                  val parent: Option[Environment] = None) extends RObject {
   parent match {
     case Some(x: Environment) => x.children += this
     case None => // do nothing

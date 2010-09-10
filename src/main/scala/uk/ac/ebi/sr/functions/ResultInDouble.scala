@@ -9,7 +9,7 @@ import model.RVal.RDouble
  * Date: 09-Sep-2010
  * @author Taalai Djumabaev
  */
-trait DoubleResult {
+trait ResultInDouble {
 
   def applyF[A](a: Array[A], f: A => Double) = {
     val length = a.length

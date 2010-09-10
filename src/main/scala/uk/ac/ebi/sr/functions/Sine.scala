@@ -8,11 +8,9 @@ import model.RVal.{RInt, RBool, RDouble}
  * Date: 09-Sep-2010
  * @author Taalai Djumabaev
  */
-object Sine extends StdBuiltin("x") with DoubleResult {
+object Sine extends StdBuiltin with ResultInDouble {
 
-  def process(r: RObject) = sine(r)
-
-  def sine(r: RObject): RObject = r match {
+  def apply(r: RObject) = r match {
     case ri: RBool => applyF[Int](ri.s, (i: Int) => Math.sin(i toDouble))
     case ri: RInt => applyF[Int](ri.s, (i: Int) => Math.sin(i toDouble))
     case ri: RDouble => applyF[Double](ri.s, Math.sin(_)) 

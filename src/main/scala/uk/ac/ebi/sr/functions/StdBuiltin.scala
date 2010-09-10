@@ -11,12 +11,18 @@ import interpreter.{DeclArg, FDeclArg, NULL}
 
 abstract class StdBuiltin(val X: String) extends Builtin {
 
+  def this() = this(StdBuiltin.X)
+
   val params = List[FDeclArg](DeclArg(X))
 
-  protected def apply(e: Environment) = e resolve X match {
-    case Some(x) => process(x)
+  protected def process(e: Environment) = e resolve X match {
+    case Some(x) => apply(x)
     case None => NULL
   }
 
-  protected def process(r: RObject): RObject
+  protected def apply(r: RObject): RObject
+}
+
+object StdBuiltin {
+  val X = "x"
 }

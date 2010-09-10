@@ -21,7 +21,7 @@ object Operations {
 
   import functions.Attr._
   def dim[A, B, F <: RObject](a: Sequential[A], b: Sequential[B], f: => F) = {
-    val attribute = (attr(a, DIM), attr(b, DIM)) match {
+    val attribute = (Attr(a, DIM), Attr(b, DIM)) match {
       //when the dim is set - it is coerced to RInt
       case (l: RInt, r: RInt) => if (true) l else error("non-comformable arrays")
       case (l: RInt, NULL) => if (a.length >= b.length) l else error("non-comformable arrays") //todo also warning if not a multiple

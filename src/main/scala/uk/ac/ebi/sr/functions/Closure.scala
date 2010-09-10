@@ -11,6 +11,9 @@ import model._
  */
 trait RFunction extends ((List[FCallArg], Environment) => RObject)
 
+/**
+ * Closure as in R language. Changing of body or environment is not yet supported.
+ */
 case class Closure(val params: List[FDeclArg], expr: Expression, env: Environment)
         extends RObject with ArgMatching with RFunction {
   lazy val defaultEvaluator = new Evaluator(env)

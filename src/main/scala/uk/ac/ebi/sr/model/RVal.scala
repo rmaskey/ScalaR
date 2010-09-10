@@ -38,7 +38,7 @@ trait Sequential[S] extends RObject {
   val NA: S
   val m: Manifest[S]
 
-  override def toString = if (isEmpty) NULL.asString else s.toList.toString  
+  override def toString = if (isEmpty) NULL.asString else s.toList.toString
 
 }
 
