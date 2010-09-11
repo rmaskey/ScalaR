@@ -5,9 +5,9 @@ import model.{RObject, Sequential}
 import collection.mutable.ArrayBuffer
 import model.RVal.{RChar, RDouble, RInt, RBool}
 import interpreter.{NULL, EmptyIndex}
-import AsInteger._
 
 /**
+ * Object used to subset given sequences.
  *
  * Date: Jul 26, 2010
  * @author Taalai Djumabaev
@@ -30,7 +30,7 @@ object OneDimensionalSubset {
       }
     case i: RDouble =>
       //TODO bounds should be checked by values
-      val asInt = `as.integer`(i)
+      val asInt = AsInteger(i)
       isOfOneSign(asInt) match {
         case (true, false) => seq.applyF(subset(seq, asInt))
         case (false, true) => seq.applyF(subsetNegation(seq, asInt))
@@ -41,8 +41,10 @@ object OneDimensionalSubset {
     case o => error("invalid subscript type: " + o.`type`)
   }
 
-
-  def subset[B](b: Sequential[B], ind: RInt)(implicit m: Manifest[B]) = {
+  /**
+   * if the subsetting vector is of type integer and every number is positive (can be zero)
+   */
+  private def subset[B](b: Sequential[B], ind: RInt)(implicit m: Manifest[B]) = {
     val a = b.s
     val index = ind.s
     val indLen = index.length
@@ -58,7 +60,10 @@ object OneDimensionalSubset {
     buf.toArray
   }
 
-  def subsetNegation[B](b: Sequential[B], ind: RInt)(implicit m: Manifest[B]) = {
+  /**
+   * if the subsetting vector is of type integer and every number is negative (can be zero)
+   */
+  private def subsetNegation[B](b: Sequential[B], ind: RInt)(implicit m: Manifest[B]) = {
     val a = b.s
     val len = a.length
     val index = ind.applyChange(java.util.Arrays.sort).s
@@ -76,7 +81,10 @@ object OneDimensionalSubset {
     buf.toArray
   }
 
-  def subsetLogical[B](b: Sequential[B], ind: RBool)(implicit m: Manifest[B]) = {
+  /**
+   * if the subsetting vector is of type boolean
+   */
+  private def subsetLogical[B](b: Sequential[B], ind: RBool)(implicit m: Manifest[B]) = {
     val a = b.s
     val len = a.length
     val index = ind.s

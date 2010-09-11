@@ -29,7 +29,6 @@ class Interpreter(mainEnv: Environment) {
 }
   //class for evaluating with the environment
 class Evaluator(val env: Environment, session: RSession = RSession.currentSession) { //todo should be changed so that not only one session is allowed
-  import functions.AsLogical._
   import functions.Subset._
 
   def eval(e: Expression): RObject = e match {
@@ -37,14 +36,14 @@ class Evaluator(val env: Environment, session: RSession = RSession.currentSessio
     case Block(l) => l.init.foreach(eval(_)); eval(l.last)
 
     case IfStructure(If(ic, is), elseIfs, _else) => {
-      val bool = `as.logical`(eval(ic))
+      val bool = AsLogical(eval(ic))
       if (bool.isEmpty) error("argument is of length zero")
       if (bool.length > 1) {}// warning
       bool.s(0) match {
         case RBool.NA => error("missing value where TRUE/FALSE needed")
         case 1 => return eval(is)
         case 0 => for (ElseIf(c, s) <- elseIfs) {
-          val bool = `as.logical`(eval(c))
+          val bool = AsLogical(eval(c))
           if (bool.isEmpty) error("argument is of length zero")
           if (bool.length > 1) {}// warning
           bool.s(0) match {
@@ -64,7 +63,7 @@ class Evaluator(val env: Environment, session: RSession = RSession.currentSessio
 
     case While(c, l) => {
       while ({
-        val bool = `as.logical`(eval(c))
+        val bool = AsLogical(eval(c))
         if (bool.isEmpty) error("argument is of length zero")
         if (bool.length > 1) {}// warning
         bool.s(0) match {

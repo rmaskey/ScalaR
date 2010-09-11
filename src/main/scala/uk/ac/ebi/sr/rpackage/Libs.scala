@@ -17,7 +17,7 @@ object Libs extends Builtin {
   val DIR = "dir"
   val params = List[FDeclArg](DeclArg(DIR))
 
-  protected def apply(env: Environment): RObject = env.resolve(DIR) match {
+  protected def process(env: Environment): RObject = env.resolve(DIR) match {
     case Some(s: RChar) => {
       if (s.length == 1) addLibsDir(s.s(0))
       //todo warnings otherwise

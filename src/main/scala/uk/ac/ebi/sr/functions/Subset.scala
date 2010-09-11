@@ -62,9 +62,6 @@ object Subset {
   }
 
   def oneDimensionalAssignment[A, B](r: Array[B], ind: Array[Int])(a: Array[A])(implicit m: Manifest[A]): Array[A] = {
-    printArray(r)
-    printArray(a)
-    printArray(ind)
     val b = r.asInstanceOf[Array[A]]
     val nLen = ind.length
     val len = b.length
@@ -107,7 +104,7 @@ object Subset {
         case _ => error("only 0's may be mixed with negative subscripts")
       }
     case d: RDouble =>
-      val i = `as.integer`(d)
+      val i = AsInteger(d)
       isOfOneSign(i) match {
         case (true, false) => if (i.forall((a: Int) => a <= dim)) i.s else error("subscript out of bounds")
         case (false, true) => negateInd(i, dim)
@@ -244,20 +241,6 @@ object Subset {
     val subIn = RInt(1,5,10,2)
     val newValue = RInt(100, 1000, 1, 1)
     println(`[<-`(Var(name), List(subIn), env, newValue))
-  }
-
-  def printArray[B](a: Array[B]) {
-    var i = 0
-    val len = a.length
-    println("a: ") 
-    while (i < len) {
-      a(i) match {
-        case aa: Array[B] => print("["); printArray(aa); print("]")
-        case aa => print(aa + " ")
-      }
-      i += 1
-    }
-    println
   }
 }
 

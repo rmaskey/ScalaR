@@ -24,6 +24,7 @@ case class IfStructure(_if: If, elseIf: List[ElseIf], _else: Option[Else]) exten
 case class If(condition: Expression, stats: Expression) extends Expression
 case class ElseIf(condition: Expression, stats: Expression) extends Expression
 case class Else(stats: Expression) extends Expression
+
 case class While(condition: Expression, stats: Expression) extends NoPrintedReturnExpression
 case class Repeat(stats: Expression) extends NoPrintedReturnExpression
 case class For(_var: Var, expr: Expression, stats: Expression) extends Expression
@@ -107,4 +108,4 @@ case object NULL extends Expression {
   def asString = "NULL"
 }
 case object NA extends Expression
-case object EOfF extends Expression
+case object EOfF extends NoPrintedReturnExpression

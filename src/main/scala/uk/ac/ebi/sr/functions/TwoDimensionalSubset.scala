@@ -42,7 +42,7 @@ class TwoDimensionalSubset[A](val seq: Sequential[A], val x: Int, val y: Int)(im
         case _ => error("only 0's may be mixed with negative subscripts")
       }
       case d: RDouble =>
-        val i = `as.integer`(d)
+        val i = AsInteger(d)
         isOfOneSign(i) match {
           case (true, false) => yInt(i.s, buf, f)
           case (false, true) => yNegInt(i, buf, f)
@@ -62,7 +62,7 @@ class TwoDimensionalSubset[A](val seq: Sequential[A], val x: Int, val y: Int)(im
       case _ => error("only 0's may be mixed with negative subscripts")
     }
     case d: RDouble =>
-      val i = `as.integer`(d)
+      val i = AsInteger(d)
       isOfOneSign(i) match {
         case (true, false) => xInt(i.s, buf)
         case (false, true) => xNegInt(i, buf)
