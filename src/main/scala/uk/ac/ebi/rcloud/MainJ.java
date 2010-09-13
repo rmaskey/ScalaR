@@ -17,6 +17,7 @@ import java.awt.event.ActionListener;
 public class MainJ {
 
     public static final JFrame frame = new JFrame();
+    public static final String EMPTY = "";
 
     public static void main(String[] args) {
         final ConsolePanelBase console = new ConsolePanelBase();
@@ -57,9 +58,14 @@ public class MainJ {
 //        };
         ActionListener listener = new ActionListener() {
             public void actionPerformed(ActionEvent event) {
-                String res = exec.interpret(event.getActionCommand().trim());
-                console.print(res);
-                if (res.isEmpty()) console.setPrompt("> "); else console.setPrompt("\n> ");
+                String input = event.getActionCommand().trim();
+                if (input.equals(EMPTY)) {
+                    console.setPrompt("> ");
+                } else {
+                    String res = exec.interpret(input);
+                    console.print(res);
+                    if (res.isEmpty()) console.setPrompt("> "); else console.setPrompt("\n> ");
+                }
                 console.printPrompt();
             }
         };

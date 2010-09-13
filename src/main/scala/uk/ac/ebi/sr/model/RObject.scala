@@ -25,6 +25,7 @@ trait ReferenceCounter {
  * `type` field is abstract (not ANY) so that subclasses are forced to override it
  */
 abstract class RObject extends ReferenceCounter with Cloneable {
+  import RObject._
 
   /**
    * every object in R lang has it's type
@@ -56,4 +57,19 @@ abstract class RObject extends ReferenceCounter with Cloneable {
   def dropAttr(names: String*) = for (name <- names) attributes.remove(name)
 
   override def clone() = super.clone
+
+  override def toString: String = {
+    val buf = new StringBuilder
+    attributes.foreach((a: (String, RObject)) => {
+      buf append "\n"
+      buf append attrToString(a._1)
+      buf append "\n"
+      buf append a._2.toString
+    })
+    buf toString
+  }
+}
+
+object RObject {
+  def attrToString(n: String) = "attr(" + n + ")"
 }
