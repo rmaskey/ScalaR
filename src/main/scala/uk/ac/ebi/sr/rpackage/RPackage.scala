@@ -9,13 +9,17 @@ import java.util.jar.JarInputStream
 import java.net.{URLClassLoader, URL}
 
 /**
+ * A named R package.
  *
  * Date: Aug 11, 2010
  * @author Taalai Djumabaev
  */
-
 class RPackage(val name: String, val env: Environment, val exported: Map[String, RObject])
 
+/**
+ * packages are loaded in a certain way. Dependencies are resolved. First jar files are loaded
+ * and then R source files are parsed and interpreted
+ */
 object RPackage {
 
   val R_SOURCE = "/R"

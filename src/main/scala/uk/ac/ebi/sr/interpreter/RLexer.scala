@@ -7,6 +7,7 @@ import util.parsing.combinator.RegexParsers
 import util.parsing.combinator.lexical.Lexical
 
 /**
+ * Tokens of the parser 
  *
  * Date: 14.03.2010
  * @author Taalai Djumabaev

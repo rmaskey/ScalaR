@@ -1,5 +1,8 @@
 package uk.ac.ebi.sr.model
 
+/**
+ * type of R objects
+ */
 object Type extends Enumeration {  
   type Type = Value
 
@@ -35,6 +38,9 @@ object Type extends Enumeration {
       COMPLEX -> 4,
       CHARACTER -> 5)
 
+  /**
+   * method used in concatenation to find the most abstract type
+   */
   def typeValue(t: Value) = {
     TYPE_VALUE.get(t) match {
       case Some(x) => x

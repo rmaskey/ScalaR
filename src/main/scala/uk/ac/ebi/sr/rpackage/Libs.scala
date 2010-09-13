@@ -7,6 +7,7 @@ import model.{RObject, Environment}
 import model.RVal.RChar
 
 /**
+ * Function for adding new directories with r-packages in them
  *
  * Date: Sep 7, 2010
  * @author Taalai Djumabaev
