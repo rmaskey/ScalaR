@@ -1,0 +1,26 @@
+ScalaR is a Scala implementation of R environment.
+
+The goal of the project is to create an extensible pure-Scala
+implementation of the R language for distributed statistical
+computing in the JVM.
+
+Since it is rather new many things are to be done.
+
+Things that are already supported:
+ - own R language parser and interpreter
+ - primitive type vectors and operations on them, lists
+ - a mechanism to write and wrap your own functions
+ - some "base" functions are already implemented
+ - simple console from the r-cloud project (https://www.ebi.ac.uk/tools/rcloud/)
+ - simple accessible object model for R environment
+
+Missing:
+ - complete R base and math functions implementations
+ - S3 / S4 objects support for OOP
+ - graphics
+ - matrix operations, dataframes
+ - help (as it is in current R environment)
+ - bridge to C (for native calls)
+
+
+See our wiki for further details on current progress, contacts and on how to contribute.
