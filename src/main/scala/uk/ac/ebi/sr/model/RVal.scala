@@ -7,22 +7,26 @@ import interpreter.NULL
 import rutils.NAs
 
 /**
+ * Vector like objects in R language are implemented by Sequential trait
  *
  * Date: Jun 25, 2010
  * @author Taalai Djumabaev
  */
 trait Sequential[S] extends RObject {
+
   def s: Array[S]
   lazy val length = if (s == null) 0 else s.length
 
+  /**
+   * check a condition for every element
+   */
   def forall(f: S => Boolean): Boolean = {
     var i = 0
     while (i < length) if (!f(s(i))) return false else i += 1
     true
   }
-  // todo do we need this? def apply(i: Int) = s(i - 1)
 
-  def applyF(f: => Array[S]): Sequential[S]      //todo should also copy needed attributes
+  def applyF(f: => Array[S]): Sequential[S]      //todo should also copy needed attributes. not all of them! which ones?
 
   def applyChange(f: Array[S] => Any): Sequential[S] = if (isMultiReferenced) {    //todo write a test. or referenced once?
     val cloned = this.clone.asInstanceOf[Sequential[S]]
@@ -39,15 +43,15 @@ trait Sequential[S] extends RObject {
   val m: Manifest[S]
 
   override def toString = if (isEmpty) NULL.asString else s.toList.toString
-
 }
 
+/**
+ * vectors of primitive types are mixed with this trait.
+ */
 trait RVal[T] extends Sequential[T] {
 
   def empty: RVal[T]
 }
-
-
 
 object RVal {
 

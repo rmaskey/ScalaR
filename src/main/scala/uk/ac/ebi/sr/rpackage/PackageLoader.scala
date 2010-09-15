@@ -9,6 +9,8 @@ import interpreter.{DeclArg, FDeclArg, NULL}
 import java.io.{FileFilter, File}
 
 /**
+ * An object that loads a package. Looks for packages in session's 'libs' paths
+ * First found package is loaded
  *
  * Date: Aug 16, 2010
  * @author Taalai Djumabaev

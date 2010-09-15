@@ -7,11 +7,11 @@ import util.parsing.input.PagedSeqReader
 import collection.immutable.PagedSeq
 
 /**
+ * A package namespace file parser
  *
  * Date: Aug 12, 2010
  * @author Taalai Djumabaev
  */
-
 class NamespaceParser extends StandardTokenParsers {
   override val lexical = new NamespaceLexer
   lexical.delimiters += ("(", ")", ",", "\"", "\'")
@@ -36,6 +36,9 @@ class NamespaceParser extends StandardTokenParsers {
   }
 }
 
+/**
+ * A package namespace file lexer
+ */
 class NamespaceLexer extends StdLexical {
 
   override def token =

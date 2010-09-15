@@ -6,6 +6,7 @@ import interpreter.NULL
 import model.{Complex, RVal, RObject, Sequential}
 
 /**
+ * Binary operations on Sequentials (in fact, on Arrays). Many similar methods are needed to gain in performance.
  *
  * Date: Jul 7, 2010
  * @author Taalai Djumabaev
@@ -19,8 +20,12 @@ object Operations {
     case false => 0
   }
 
-  import functions.Attr._
+  /**
+   * dimensions consistency check and then application of the supplied function
+   */
   def dim[A, B, F <: RObject](a: Sequential[A], b: Sequential[B], f: => F) = {
+    import functions.Attr._
+
     val attribute = (Attr(a, DIM), Attr(b, DIM)) match {
       //when the dim is set - it is coerced to RInt
       case (l: RInt, r: RInt) => if (true) l else error("non-comformable arrays")
@@ -34,6 +39,9 @@ object Operations {
     res
   }
 
+  /**
+   * converts seq of RObjects into Sequential objects by the given function and concatenates them
+   */
   def concatArrays[B](obs: Seq[RObject], f: RObject => Sequential[B])(implicit m: Manifest[B]): RObject = {
     var totalLength = 0
     val list = for (o <- obs) yield {
@@ -51,16 +59,30 @@ object Operations {
       res
     })
   }
-  
-  def convertArray[A, B](a: Array[A], f: A => B)(implicit m: Manifest[B]): Array[B] = {
+
+  /**
+   * array elements type conversion. Used as alternative to Sequential applyF method.
+   */
+  def convertArray[A, B](a: Array[A], f: A => B, NA_A: A, NA_B: B)(implicit m: Manifest[B]): Array[B] = {
     if (a == null || a.length == 0) return null
     val buf = new ArrayBuffer[B](a.length)
 
+    val length = a.length
+    val newSeq = Array.tabulate[B](length)(_ => NA_B)
     var i = 0
-    while (i < a.length) { buf += f(a(i)); i += 1 }
-    buf.toArray
+    while (i < length) {
+      a(i) match {
+        case NA_A =>
+        case any => newSeq(i) = f(any)
+      }
+      i += 1
+    }
+    newSeq
   }
 
+  /**
+   * iterating with applying supplied operation as it is done in R language
+   */
   def modeIterate[A, B, C](l: Sequential[A], r: Sequential[B], f: (A, B) => C, NA: C)(implicit m: Manifest[C]): Array[C] = {
     if (l.isEmpty || r.isEmpty) return null
     val la = l.s
@@ -78,9 +100,17 @@ object Operations {
     buf.toArray
   }
 
+  /**
+   * generating sequence starting with integer and the given upper bound that is converted to integer
+   * by the function supplied. Only first elements of the sequentials are used. Others are ignored.
+   *
+   * @param l is an upper or lower bound for the sequence to be generated
+   * @param r is a lower or upper bound
+   * @param f function to convert second bound into integer
+   */
   def genSequence[B](l: RInt, r: Sequential[B])(implicit f: B => Int): Array[Int] = {
     if (l.isEmpty || r.isEmpty) return null
-    // warning for length > 1
+    //todo warning for length > 1
     val start = l.s(0)
     val end = f(r.s(0))
     val cond = if (start < end) (i: Int) => i <= end else (i: Int) => i >= end
@@ -93,9 +123,17 @@ object Operations {
     buf.toArray
   }
 
+  /**
+   * generating sequence starting with integer and the given upper bound that is converted to integer
+   * by the function supplied. Only first elements of the sequentials are used. Others are ignored.
+   *
+   * @param l is an upper or lower bound for the sequence to be generated
+   * @param r is a lower or upper bound
+   * @param f function to convert second bound into Double
+   */
   def genSequence[B](l: RDouble, r: Sequential[B])(implicit f: B => Double): Array[Double] = {
     if (l.isEmpty || r.isEmpty) return null
-    // warning for length > 1
+    //todo warning for length > 1
     val start = l.s(0)
     val end = f(r.s(0))
     val cond = if (start < end) (i: Double) => i <= end else (i: Double) => i >= end
@@ -108,9 +146,17 @@ object Operations {
     buf.toArray
   }
 
+  /**
+   * generating sequence starting with integer and the given upper bound that is converted to integer
+   * by the function supplied. Only first elements of the sequentials are used. Others are ignored.
+   *
+   * @param l is an upper or lower bound for the sequence to be generated
+   * @param r is a lower or upper bound
+   * @param f function to convert second bound into Double
+   */
   def genSequence[B](l: RComplex, r: Sequential[B])(implicit f: B => Double): Array[Double] = {
     if (l.isEmpty || r.isEmpty) return null
-    // warning for length > 1
+    //todo warning for length > 1
     val start = l.s(0).r
     val end = f(r.s(0))
     val cond = if (start < end) (i: Double) => i <= end else (i: Double) => i >= end

@@ -6,6 +6,7 @@ import model.RVal.Bool
 import NAs._
 
 /**
+ * Primitive type coercions
  *
  * Date: Jul 13, 2010
  * @author Taalai Djumabaev

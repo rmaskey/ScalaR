@@ -54,7 +54,7 @@ class TwoDimensionalSubset[A](val seq: Sequential[A], val x: Int, val y: Int)(im
     seq.applyF(fun)
   }
 
-  def getXInd(o: RObject, buf: ArrayBuffer[A]): (Int => Unit) = o match {
+  private def getXInd(o: RObject, buf: ArrayBuffer[A]): (Int => Unit) = o match {
     case b: RBool => xBool(b.s, buf)
     case i: RInt => isOfOneSign(i) match {
       case (true, false) => xInt(i.s, buf)
@@ -72,7 +72,7 @@ class TwoDimensionalSubset[A](val seq: Sequential[A], val x: Int, val y: Int)(im
     case o => error("invalid subscript type: " + o.`type`)
   }
 
-  def yBool(b: Array[Int], buf: ArrayBuffer[A], f: Int => Unit) = {
+  private def yBool(b: Array[Int], buf: ArrayBuffer[A], f: Int => Unit) = {
     val lenDecr = b.length - 1
     if (lenDecr >= y) error("subscript out of bounds")
     var i = 0
@@ -89,7 +89,7 @@ class TwoDimensionalSubset[A](val seq: Sequential[A], val x: Int, val y: Int)(im
     buf.toArray
   }
 
-  def xBool(b: Array[Int], buf: ArrayBuffer[A])(i: Int) = {
+  private def xBool(b: Array[Int], buf: ArrayBuffer[A])(i: Int) = {
     val lenDecr = b.length - 1
     if (lenDecr >= x) error("subscript out of bounds")
     val a = seq.s
@@ -106,7 +106,7 @@ class TwoDimensionalSubset[A](val seq: Sequential[A], val x: Int, val y: Int)(im
     }
   }
 
-  def yInt(b: Array[Int], buf: ArrayBuffer[A], f: Int => Unit) = {
+  private def yInt(b: Array[Int], buf: ArrayBuffer[A], f: Int => Unit) = {
     val len = b.length
     var i = 0
     while(i < len) {
@@ -120,7 +120,7 @@ class TwoDimensionalSubset[A](val seq: Sequential[A], val x: Int, val y: Int)(im
     buf.toArray
   }
 
-  def xInt(b: Array[Int], buf: ArrayBuffer[A])(i: Int) = {
+  private def xInt(b: Array[Int], buf: ArrayBuffer[A])(i: Int) = {
     val len = b.length
     val a = seq.s
     val isNA = i == NAs.intNA
@@ -138,7 +138,7 @@ class TwoDimensionalSubset[A](val seq: Sequential[A], val x: Int, val y: Int)(im
     }
   }
 
-  def yNegInt(ind: RInt, buf: ArrayBuffer[A], f: Int => Unit) = {
+  private def yNegInt(ind: RInt, buf: ArrayBuffer[A], f: Int => Unit) = {
     val index = ind.applyChange(java.util.Arrays.sort).s
     var i = 0
     var j = index.length - 1
@@ -152,7 +152,7 @@ class TwoDimensionalSubset[A](val seq: Sequential[A], val x: Int, val y: Int)(im
     buf.toArray
   }
 
-  def xNegInt(ind: RInt, buf: ArrayBuffer[A])(i: Int) = {
+  private def xNegInt(ind: RInt, buf: ArrayBuffer[A])(i: Int) = {
     val index = ind.applyChange(java.util.Arrays.sort).s
     val a = seq.s
     var j = 0
@@ -167,7 +167,7 @@ class TwoDimensionalSubset[A](val seq: Sequential[A], val x: Int, val y: Int)(im
     }
   }
 
-  def yAll(buf: ArrayBuffer[A], f: Int => Unit) = {
+  private def yAll(buf: ArrayBuffer[A], f: Int => Unit) = {
     var i = 0
     while (i < y) {
       f(i)
@@ -176,7 +176,7 @@ class TwoDimensionalSubset[A](val seq: Sequential[A], val x: Int, val y: Int)(im
     buf.toArray
   }
 
-  def xAll(buf: ArrayBuffer[A])(i: Int) = {
+  private def xAll(buf: ArrayBuffer[A])(i: Int) = {
     val a = seq.s
     var j = 0
     while (j < x) {

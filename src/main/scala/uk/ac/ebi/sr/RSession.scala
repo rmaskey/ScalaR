@@ -2,12 +2,13 @@ package uk.ac.ebi.sr
 
 import collection.mutable.Map
 import functions._
-import model.{RObject, Environment}
+import model.Environment
 import java.io.{FileFilter, File}
 import rpackage.{Libs, PackageLoader, RPackage}
 
 /**
- *
+ * Only one session per scalar is supported for now.
+ * 
  * Date: Aug 11, 2010
  * @author Taalai Djumabaev
  */

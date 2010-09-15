@@ -4,7 +4,8 @@ package rutils
 import uk.ac.ebi.sr.model.Complex
 
 /**
- *
+ * NA values for primitive types
+ * 
  * Date: Jul 13, 2010
  * @author Taalai Djumabaev
  */

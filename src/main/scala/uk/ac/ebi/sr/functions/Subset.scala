@@ -9,6 +9,7 @@ import interpreter.{Var, Lit, EmptyIndex, NULL}
 import rutils.NAs
 
 /**
+ * Subset operations.
  *
  * Date: Jul 9, 2010
  * @author Taalai Djumabaev
@@ -61,7 +62,7 @@ object Subset {
     }
   }
 
-  def oneDimensionalAssignment[A, B](r: Array[B], ind: Array[Int])(a: Array[A])(implicit m: Manifest[A]): Array[A] = {
+  private def oneDimensionalAssignment[A, B](r: Array[B], ind: Array[Int])(a: Array[A])(implicit m: Manifest[A]): Array[A] = {
     val b = r.asInstanceOf[Array[A]]
     val nLen = ind.length
     val len = b.length
@@ -75,7 +76,7 @@ object Subset {
     a
   }
 
-  def multiDimensional[B](seq: Sequential[B], index: List[RObject])(implicit m: Manifest[B]) = {
+  private def multiDimensional[B](seq: Sequential[B], index: List[RObject])(implicit m: Manifest[B]) = {
     val dim: Array[Int] = seq.attr(Attr.DIM) match {
       case s: RInt => s.s
       case _ => error("internal error: no dim attribute")
@@ -95,7 +96,7 @@ object Subset {
   }
 
   //todo indexes should be returned starting from zero not from one. efficiency will increase for no extra +-1's
-  def getIndexes(ob: RObject, dim: Int) = ob match {
+  private def getIndexes(ob: RObject, dim: Int) = ob match {
     case b: RBool => if (b.length > dim) error("(subscript) logical subscript too long") else extendBool(b, dim)
     case i: RInt =>
       isOfOneSign(i) match {
@@ -114,7 +115,7 @@ object Subset {
     case o => error("invalid subscript type: " + o.`type`)
   }
 
-  def extendBool(b: RBool, size: Int) = {
+  private def extendBool(b: RBool, size: Int) = {
     val buf = new ArrayBuffer[Int](size)
     val a = b.s
     var i = 0
@@ -131,7 +132,7 @@ object Subset {
     buf.toArray
   }
 
-  def negateInd(ri: RInt, dim: Int) = {
+  private def negateInd(ri: RInt, dim: Int) = {
     val buf = new ArrayBuffer[Int]()
     val index = ri.applyChange(java.util.Arrays.sort).s
     var i = 0
@@ -147,7 +148,7 @@ object Subset {
   }
 
 
-  def isMultidimensional(o: RObject) = o.attr(Attr.DIM) match {
+  private def isMultidimensional(o: RObject) = o.attr(Attr.DIM) match {
     case s: Sequential[_] => s.length > 1
     case _ => false
   }
@@ -166,7 +167,7 @@ object Subset {
     (pos, neg)
   }
 
-  def subsetMultiple[B](b: Sequential[B], mul: Array[Int], index: Array[Array[Int]], resultLen: Int)(implicit m: Manifest[B]) = {
+  private def subsetMultiple[B](b: Sequential[B], mul: Array[Int], index: Array[Array[Int]], resultLen: Int)(implicit m: Manifest[B]) = {
     val a = b.s
     var i = 0
     var len = mul.length
@@ -185,7 +186,7 @@ object Subset {
     })
   }
 
-  def mapIndexes(subInd: Array[Int], index: Array[Array[Int]]) = {
+  private def mapIndexes(subInd: Array[Int], index: Array[Array[Int]]) = {
     var i = -1
     var j = subInd.length
     Array.fill(subInd.length)({
@@ -195,7 +196,7 @@ object Subset {
     })
   }
 
-  def indMultiples(index: Array[Array[Int]]) = {
+  private def indMultiples(index: Array[Array[Int]]) = {
     var i = -1
     var mul = 1
     Array.fill(index.length)({
@@ -205,7 +206,7 @@ object Subset {
     })
   }
 
-  def multiples(dim: Array[Int]) = {
+  private def multiples(dim: Array[Int]) = {
     var multiple = 1
     var j = -1
     Array.fill(dim.length)({

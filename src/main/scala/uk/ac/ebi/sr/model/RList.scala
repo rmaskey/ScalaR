@@ -8,12 +8,16 @@ import interpreter.NULL
 import collection.mutable.ArrayBuffer
 
 /**
+ * Trait for recursive data structures
  *
  * Date: Jul 28, 2010
  * @author Taalai Djumabaev
  */
 trait Recursive extends Sequential[RObject]
 
+/**
+ * list as it is in r language
+ */
 class RList(val s: Array[RObject]) extends Recursive {
 
   lazy val `type` = RList.`type`
@@ -23,8 +27,11 @@ class RList(val s: Array[RObject]) extends Recursive {
 
   def applyF(f: => Array[RObject]) = RList(f)
 
+  /**
+   * extract a value using 'names' attribute ('$' operation)
+   */
   def extract(name: String): RObject = attributes.get(Attr.NAMES) match {
-    case Some(c: RChar) => val res = searchForName(c.s, name); println(res);res
+    case Some(c: RChar) => val res = searchForName(c.s, name); res
     case _ => NULL
   }
 

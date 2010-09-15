@@ -5,6 +5,9 @@ import model.{Environment, RObject}
 import interpreter.{DeclArg, FDeclArg, NULL}
 
 /**
+ * Simplifies the function object realisation since there many
+ * functions in R that have only one parameter (usually x)
+ *
  * Date: 09-Sep-2010
  * @author Taalai Djumabaev
  */

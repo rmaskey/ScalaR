@@ -5,7 +5,9 @@ import collection.mutable.Map
 import interpreter.{Evaluator, Expression}
 
 /**
- *
+ * R environment. Has references on parent and children for a proper
+ * clearing (since reference counters of objects contained need to be decreased during clean out)
+ * 
  * Date: 30.05.2010
  * @author Taalai Djumabaev
  */
@@ -18,6 +20,9 @@ class Environment(val ids: Map[String, RObject] = Map[String, RObject](),
   lazy val children = collection.mutable.ListBuffer[Environment]()
   lazy val packageExports = Map[String, Map[String, RObject]]()
 
+  /**
+   * add a package into environment and search path.
+   */
   def addPackage(name: String, exported: Map[String, RObject]) = {
     //todo to check names of variables (ome can be already present. warning is needed)
     packageExports += name -> exported
@@ -26,6 +31,9 @@ class Environment(val ids: Map[String, RObject] = Map[String, RObject](),
   val `type` = Type.ENVIRONMENT
   var isBound = false
 
+  /**
+   * add new values to the environment. Expressions are evaluated before being added.
+   */
   def ++= (m: Map[String, RObject]) = {
     for ((k, v) <- m) this += (k, v)
     this
@@ -41,6 +49,9 @@ class Environment(val ids: Map[String, RObject] = Map[String, RObject](),
     this
   }
 
+  /**
+   * looks for id only in itself without looking in parent environments
+   */
   //todo do we need to add exported variables for search? can we modify them?
   def resolveLocal(id: String): Option[RObject] = if (ids contains id) ids get id else None
 
@@ -53,6 +64,9 @@ class Environment(val ids: Map[String, RObject] = Map[String, RObject](),
     }
   }
 
+  /**
+   * resolve the id and returns object referenced with the containing environment
+   */
   //todo do we need to add exported variables for search? can we modify them?
   def resolveWithEnv(id: String): Option[(RObject, Environment)] = {
     if (ids contains id) Some((ids(id), this))

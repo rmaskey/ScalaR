@@ -7,6 +7,8 @@ import functions._
 import model._
 
 /**
+ * Interpreter of the parsed trees.
+ * In fact, just wraps an evaluator
  *
  * Date: 30.05.2010
  * @author Taalai Djumabaev
@@ -27,10 +29,18 @@ class Interpreter(mainEnv: Environment) {
     (evaluator.eval(tree), evaluator.env)
   }
 }
-  //class for evaluating with the environment
+
+/**
+ * class for evaluating with the environment. The parsed tree is walked through.
+ */
 class Evaluator(val env: Environment, session: RSession = RSession.currentSession) { //todo should be changed so that not only one session is allowed
   import functions.Subset._
 
+  /**
+   * main recursive evaluating method.
+   *
+   * @param e expression to be evaluated
+   */
   def eval(e: Expression): RObject = e match {
 
     case Block(l) => l.init.foreach(eval(_)); eval(l.last)
@@ -741,6 +751,9 @@ class Evaluator(val env: Environment, session: RSession = RSession.currentSessio
     case a => error("unsupported expression got. " + a)
   }
 
+  /**
+   * evaluates argument passed to subsetting
+   */
   def evalIndexArgs(l: List[IndexArgument]) = for (i <- l) yield (i match {
     case em @ EmptyIndex => em
     case IndexArg(expr) => eval(expr) })
