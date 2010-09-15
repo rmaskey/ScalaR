@@ -2,7 +2,7 @@ package uk.ac.ebi.sr
 package functions
 
 import interpreter._
-import model.{Environment, RObject}
+import model.Environment
 
 /**
  * A trait used to match arguments of a calling function to it's declared arguments.

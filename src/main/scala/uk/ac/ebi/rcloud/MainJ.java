@@ -11,7 +11,6 @@ import java.awt.event.ActionListener;
 
 /**
  * Date: Aug 3, 2010
- *
  * @author Taalai Djumabaev
  */
 public class MainJ {
