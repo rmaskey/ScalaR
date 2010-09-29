@@ -32,7 +32,7 @@ object Print extends Builtin {
   val X = "x"
   val params = List[FDeclArg](DeclArg(X))
 
-  protected def apply(env: Environment): RObject = env.resolve(X) match {
+  protected def process(env: Environment): RObject = env.resolve(X) match {
     case Some(r) => print(r)
     case _ => NULL
   }
